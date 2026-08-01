@@ -1,0 +1,198 @@
+Table companies {
+  id bigint [pk, increment]
+  name varchar [not null, note: '企業名（100文字）']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    name [name: 'index_companies_on_name']
+  }
+
+  Note: '契約企業の情報を管理'
+}
+
+Table stress_check_periods {
+  id bigint [pk, increment]
+  company_id bigint [not null, ref: > companies.id]
+  name varchar [not null, note: '実施回の表示名（30文字）']
+  start_date date [note: 'NULL許容']
+  end_date date [note: 'NULL許容']
+  judgment_method integer [not null, default: 0, note: 'enum: 0=simple_sum, 1=raw_score_conversion']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (company_id, name) [unique, name: 'index_stress_check_periods_on_company_id_and_name']
+  }
+
+  Note: 'ストレスチェック実施回（判定方法含む）'
+}
+
+Table users {
+  id bigint [pk, increment]
+  company_id bigint [ref: > companies.id, note: 'NULL許容（システム管理者はNULL）']
+  role integer [not null, note: 'enum: 0=system_admin, 1=company_hr']
+  name varchar [not null, note: '氏名（50文字）']
+  email varchar [not null, note: 'Devise自動生成']
+  encrypted_password varchar [not null, note: 'Devise自動生成']
+  reset_password_token varchar [note: 'Devise自動生成']
+  reset_password_sent_at datetime [note: 'Devise自動生成']
+  invitation_token varchar [note: 'devise_invitable自動生成']
+  invitation_created_at datetime [note: 'devise_invitable自動生成']
+  invitation_sent_at datetime [note: 'devise_invitable自動生成']
+  invitation_accepted_at datetime [note: 'devise_invitable自動生成']
+  invitation_limit integer [note: 'devise_invitable自動生成']
+  invited_by_type varchar [note: 'devise_invitable自動生成']
+  invited_by_id bigint [note: 'devise_invitable自動生成']
+  invitations_count integer [default: 0, note: 'devise_invitable自動生成']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    email [unique, name: 'index_users_on_email']
+    reset_password_token [unique, name: 'index_users_on_reset_password_token']
+    invitation_token [unique, name: 'index_users_on_invitation_token']
+    invitations_count [name: 'index_users_on_invitations_count']
+    invited_by_id [name: 'index_users_on_invited_by_id']
+  }
+
+  Note: 'システム管理者+企業担当者（Devise認証）'
+}
+
+Table employees {
+  id bigint [pk, increment]
+  company_id bigint [not null, ref: > companies.id]
+  examinee_number varchar [not null, note: '受検者番号（15文字）']
+  name varchar [not null, note: '氏名（50文字）']
+  date_of_birth date [not null]
+  sex integer [not null, note: 'enum: 1=male, 2=female']
+  department varchar [note: 'NULL許容（100文字）']
+  password_digest varchar [not null, note: 'bcrypt暗号化パスワード']
+  password_changed_at datetime [note: 'NULL許容、NULLは初回ログイン扱い']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (company_id, examinee_number) [unique, name: 'index_employees_on_company_id_and_examinee_number']
+  }
+
+  Note: '受検者（bcrypt認証）'
+}
+
+Table line_friends {
+  id bigint [pk, increment]
+  company_id bigint [not null, ref: > companies.id]
+  line_user_id varchar [not null, note: 'LINE識別子（50文字）']
+  employee_id bigint [ref: - employees.id, note: 'NULL許容、紐付け完了後にセット']
+  initial_reg_token varchar [note: 'NULL許容、初期登録トークン（50文字）']
+  token_generated_at datetime [note: 'NULL許容']
+  token_send_count integer [not null, default: 0]
+  token_expires_at datetime [note: 'NULL許容']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (company_id, line_user_id) [unique, name: 'index_line_friends_on_company_id_and_line_user_id']
+    initial_reg_token [unique, name: 'index_line_friends_on_initial_reg_token']
+    employee_id [unique, name: 'index_line_friends_on_employee_id']
+  }
+
+  Note: 'LINE友だち情報+初期登録トークン'
+}
+
+Table sections {
+  id bigint [pk, increment]
+  code varchar [not null, note: 'セクション識別コード（a/b/c/d、10文字）']
+  name varchar [not null, note: 'セクション名（50文字）']
+  intro_text text [not null, note: '受検画面の導入文']
+  group_text text [note: 'NULL許容、Cセクションのみ使用']
+  display_order integer [not null, note: '表示順（1〜4）']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    code [unique, name: 'index_sections_on_code']
+    display_order [unique, name: 'index_sections_on_display_order']
+  }
+
+  Note: 'セクションマスタ（4レコード）'
+}
+
+Table answer_options {
+  id bigint [pk, increment]
+  section_id bigint [not null, ref: > sections.id]
+  answer_number integer [not null, note: '受検者が選択する番号（1〜4）']
+  text varchar [not null, note: '選択肢の文言（50文字）']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (section_id, answer_number) [unique, name: 'index_answer_options_on_section_id_and_answer_number']
+  }
+
+  Note: '回答選択肢マスタ（16レコード）'
+}
+
+Table questions {
+  id bigint [pk, increment]
+  question_type integer [not null, note: '質問セット種類（MVPは57固定）']
+  section_id bigint [not null, ref: > sections.id]
+  question_number integer [not null, note: 'セクション内の質問番号']
+  content varchar [not null, note: '質問文本文（255文字）']
+  reversed boolean [not null, default: false, note: '逆転項目か否か']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (question_type, section_id, question_number) [unique, name: 'index_questions_on_type_section_and_number']
+  }
+
+  Note: '質問マスタ（MVPは57レコード）'
+}
+
+Table stress_check_responses {
+  id bigint [pk, increment]
+  employee_id bigint [not null, ref: > employees.id]
+  stress_check_period_id bigint [not null, ref: > stress_check_periods.id]
+  question_id bigint [not null, ref: > questions.id]
+  raw_answer integer [not null, note: '受検者が選択した回答番号（1〜4）']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (employee_id, stress_check_period_id, question_id) [unique, name: 'index_stress_check_responses_on_employee_period_and_question']
+  }
+
+  Note: '回答データ（1回答=1レコード、1受検で57レコード）'
+}
+
+Table judgments {
+  id bigint [pk, increment]
+  employee_id bigint [not null, ref: > employees.id]
+  stress_check_period_id bigint [not null, ref: > stress_check_periods.id]
+  section_id bigint [not null, ref: > sections.id]
+  section_score integer [not null, note: 'セクション別の合計評価点']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (employee_id, stress_check_period_id, section_id) [unique, name: 'index_judgments_on_employee_period_and_section']
+  }
+
+  Note: '判定作業（1受検=4レコード、A/B/C/D）'
+}
+
+Table results {
+  id bigint [pk, increment]
+  employee_id bigint [not null, ref: > employees.id]
+  stress_check_period_id bigint [not null, ref: > stress_check_periods.id]
+  stress_level integer [not null, note: 'enum: 0=high_stress, 1=not_high_stress']
+  created_at datetime [not null]
+  updated_at datetime [not null]
+
+  Indexes {
+    (employee_id, stress_check_period_id) [unique, name: 'index_results_on_employee_and_period']
+  }
+
+  Note: '判定結果（1受検=1レコード）'
+}
