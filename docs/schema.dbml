@@ -67,6 +67,7 @@ Table employees {
   date_of_birth date [not null]
   sex integer [not null, note: 'enum: 1=male, 2=female']
   department varchar [note: 'NULL許容（100文字）']
+  email varchar [note: 'NULL許容（255文字、メール配信用）']
   password_digest varchar [not null, note: 'bcrypt暗号化パスワード']
   password_changed_at datetime [note: 'NULL許容、NULLは初回ログイン扱い']
   created_at datetime [not null]
@@ -97,7 +98,7 @@ Table line_friends {
     employee_id [unique, name: 'index_line_friends_on_employee_id']
   }
 
-  Note: 'LINE友だち情報+初期登録トークン'
+  Note: 'LINE友だち情報+初期登録トークン（本リリース版で使用、MVPでは未実装）'
 }
 
 Table sections {
