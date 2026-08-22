@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  company: one
+  examinee_number: MyString
+  name: MyString
+  date_of_birth: 2026-08-22
+  sex: 1
+  department: MyString
+  email: MyString
+  password_digest: MyString
+  password_changed_at: 2026-08-22 13:29:14
+
+two:
+  company: two
+  examinee_number: MyString
+  name: MyString
+  date_of_birth: 2026-08-22
+  sex: 1
+  department: MyString
+  email: MyString
+  password_digest: MyString
+  password_changed_at: 2026-08-22 13:29:14
