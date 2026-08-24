@@ -136,7 +136,7 @@ Table answer_options {
 
 Table questions {
   id bigint [pk, increment]
-  question_type integer [not null, note: '質問セット種類（MVPは57固定）']
+  question_type integer [not null, note: '質問セット種類(57=57問版、80=80問版)、MVPは57固定']
   section_id bigint [not null, ref: > sections.id]
   question_number integer [not null, note: 'セクション内の質問番号']
   content varchar [not null, note: '質問文本文（255文字）']
@@ -156,7 +156,7 @@ Table stress_check_responses {
   employee_id bigint [not null, ref: > employees.id]
   stress_check_period_id bigint [not null, ref: > stress_check_periods.id]
   question_id bigint [not null, ref: > questions.id]
-  raw_answer integer [not null, note: '受検者が選択した回答番号（1〜4）']
+  raw_answer integer [not null, note: '受検者が選択した生回答（1〜4）']
   created_at datetime [not null]
   updated_at datetime [not null]
 
