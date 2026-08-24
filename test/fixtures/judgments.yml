@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  employee: one
+  stress_check_period: one
+  section: one
+  section_score: 1
+
+two:
+  employee: two
+  stress_check_period: two
+  section: two
+  section_score: 1

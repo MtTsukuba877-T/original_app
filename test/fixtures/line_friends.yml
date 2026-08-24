@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  company: one
+  line_user_id: MyString
+  employee: one
+  initial_reg_token: MyString
+  token_generated_at: 2026-08-23 12:01:05
+  token_send_count: 1
+  token_expires_at: 2026-08-23 12:01:05
+
+two:
+  company: two
+  line_user_id: MyString
+  employee: two
+  initial_reg_token: MyString
+  token_generated_at: 2026-08-23 12:01:05
+  token_send_count: 1
+  token_expires_at: 2026-08-23 12:01:05
