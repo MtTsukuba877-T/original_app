@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  employee: one
+  stress_check_period: one
+  question: one
+  raw_answer: 1
+
+two:
+  employee: two
+  stress_check_period: two
+  question: two
+  raw_answer: 1

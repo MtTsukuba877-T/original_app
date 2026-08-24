@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  question_type: 1
+  section: one
+  question_number: 1
+  content: MyString
+  reversed: false
+
+two:
+  question_type: 1
+  section: two
+  question_number: 1
+  content: MyString
+  reversed: false

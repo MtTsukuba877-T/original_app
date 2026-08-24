@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  employee: one
+  stress_check_period: one
+  stress_level: 1
+
+two:
+  employee: two
+  stress_check_period: two
+  stress_level: 1
