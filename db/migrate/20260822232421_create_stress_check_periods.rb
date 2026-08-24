@@ -8,6 +8,6 @@ class CreateStressCheckPeriods < ActiveRecord::Migration[7.2]
       t.integer :judgment_method, null: false, default: 0, comment: "enum: 0=simple_sum, 1=raw_score_conversion"
       t.timestamps
     end
-    add_index :stress_check_periods, [:company_id, :name], unique: true
+    add_index :stress_check_periods, [ :company_id, :name ], unique: true
   end
 end

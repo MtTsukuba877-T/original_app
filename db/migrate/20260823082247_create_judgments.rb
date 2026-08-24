@@ -7,6 +7,6 @@ class CreateJudgments < ActiveRecord::Migration[7.2]
       t.integer :section_score, null: false, comment: "セクション別の合計評価点"
       t.timestamps
     end
-    add_index :judgments, [:employee_id, :stress_check_period_id, :section_id], unique: true, name: "index_judgments_on_employee_period_and_section"
+    add_index :judgments, [ :employee_id, :stress_check_period_id, :section_id ], unique: true, name: "index_judgments_on_employee_period_and_section"
   end
 end

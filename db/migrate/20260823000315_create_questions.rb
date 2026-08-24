@@ -9,6 +9,6 @@ class CreateQuestions < ActiveRecord::Migration[7.2]
 
       t.timestamps
     end
-    add_index :questions, [:question_type, :section_id, :question_number], unique: true, name: "index_questions_on_type_section_and_number"
+    add_index :questions, [ :question_type, :section_id, :question_number ], unique: true, name: "index_questions_on_type_section_and_number"
   end
 end

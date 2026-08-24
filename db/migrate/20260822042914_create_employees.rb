@@ -12,6 +12,6 @@ class CreateEmployees < ActiveRecord::Migration[7.2]
       t.datetime :password_changed_at, comment: "パスワード変更日時(NULL許容、NULLは初回ログイン扱い)"
       t.timestamps
     end
-    add_index :employees, [:company_id, :examinee_number], unique: true
+    add_index :employees, [ :company_id, :examinee_number ], unique: true
   end
 end

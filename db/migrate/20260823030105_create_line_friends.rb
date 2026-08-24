@@ -10,7 +10,7 @@ class CreateLineFriends < ActiveRecord::Migration[7.2]
       t.datetime :token_expires_at, comment: "トークン有効期限(NULL許容)"
       t.timestamps
     end
-    add_index :line_friends, [:company_id, :line_user_id], unique: true
+    add_index :line_friends, [ :company_id, :line_user_id ], unique: true
     add_index :line_friends, :initial_reg_token, unique: true
   end
 end

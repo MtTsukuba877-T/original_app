@@ -7,6 +7,6 @@ class CreateStressCheckResponses < ActiveRecord::Migration[7.2]
       t.integer :raw_answer, null: false, comment: "受検者が選択した生回答(1〜4)"
       t.timestamps
     end
-    add_index :stress_check_responses, [:employee_id, :stress_check_period_id, :question_id], unique: true, name: "index_stress_check_responses_on_employee_period_and_question"
+    add_index :stress_check_responses, [ :employee_id, :stress_check_period_id, :question_id ], unique: true, name: "index_stress_check_responses_on_employee_period_and_question"
   end
 end

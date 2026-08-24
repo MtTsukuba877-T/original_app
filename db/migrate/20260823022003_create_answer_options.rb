@@ -6,6 +6,6 @@ class CreateAnswerOptions < ActiveRecord::Migration[7.2]
       t.string :text, null: false, limit: 50, comment: "選択肢の文言(50文字まで)"
       t.timestamps
     end
-    add_index :answer_options, [:section_id, :answer_number], unique: true
+    add_index :answer_options, [ :section_id, :answer_number ], unique: true
   end
 end

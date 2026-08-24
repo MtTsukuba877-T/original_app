@@ -7,7 +7,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[7.2]
       t.references :company, foreign_key: true, comment: "NULL許容(システム管理者はNULL)"
       t.integer :role, null: false, comment: "enum: 0=system_admin, 1=company_hr"
       t.string :name, null: false, limit: 50, comment: "氏名(50文字まで)"
-          
+
       ## Database authenticatable
       t.string :email,              null: false, default: ""
       t.string :encrypted_password, null: false, default: ""
