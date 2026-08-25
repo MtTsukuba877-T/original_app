@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_23_090553) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_25_151846) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -91,7 +91,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_23_090553) do
   create_table "results", force: :cascade do |t|
     t.bigint "employee_id", null: false, comment: "受検者"
     t.bigint "stress_check_period_id", null: false, comment: "所属実施回"
-    t.integer "stress_level", null: false, comment: "enum: 0=high_stress, 1=not_high_stress"
+    t.integer "stress_level", null: false, comment: "enum: 0=high_stress, 1=low_to_moderate_stress"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["employee_id", "stress_check_period_id"], name: "index_results_on_employee_and_period", unique: true
