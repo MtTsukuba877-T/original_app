@@ -187,7 +187,7 @@ Table results {
   id bigint [pk, increment]
   employee_id bigint [not null, ref: > employees.id]
   stress_check_period_id bigint [not null, ref: > stress_check_periods.id]
-  stress_level integer [not null, note: 'enum: 0=high_stress, 1=not_high_stress']
+  stress_level integer [not null, note: 'enum: 0=high_stress, 1=low_to_moderate_stress']
   created_at datetime [not null]
   updated_at datetime [not null]
 
