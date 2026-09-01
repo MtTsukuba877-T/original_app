@@ -1,6 +1,6 @@
 # MVP全11テーブル モデル関連付け一覧
 
-**作成日**: 2026年7月28日
+**作成日**: 2026年7月28日（**更新日**: 2026年8月31日）
 **対象**: 卒業制作MVP（ストレスチェック管理システム）
 **内容**: ステップ3「リレーションシップの整理」で確定した、全11テーブルのRailsモデル関連付け・バリデーション
 
@@ -119,8 +119,8 @@ class User < ApplicationRecord
   # バリデーション
   validates :name, presence: true
   validates :role, presence: true
-  validates :company_id, presence: true, if: :company_hr?
-  validates :company_id, absence: true, if: :system_admin?
+  validates :company, presence: true, if: :company_hr?
+  validates :company, absence: true, if: :system_admin?
 end
 ```
 
@@ -143,8 +143,9 @@ end
 
 ### バリデーションの意図
 
-- **`role = system_admin`の場合**：`company_id`はNULLでなければならない
-- **`role = company_hr`の場合**：`company_id`は必須
+- **`role = system_admin`の場合**：`company`はNULLでなければならない
+- **`role = company_hr`の場合**：`company`は必須
+- **バリデーション対象をcompany_id⇒companyに変更（2026/8/31）**: 理由：テスト実行時にcompany_idの場合、DBに保存していないとテストができないため。
 
 ---
 
