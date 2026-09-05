@@ -39,3 +39,6 @@
 
 # Ignore backup files created during development
 *.bak
+
+# Windows Zone.Identifier files (WSL2 environment)
+*:Zone.Identifier

@@ -333,6 +333,14 @@ class Question < ApplicationRecord
             uniqueness: { scope: [:question_type, :section_id] }
   validates :content, presence: true
   validates :reversed, inclusion: { in: [true, false] }
+  validates :group_text, absence: true, unless: :section_c?
+  validates :group_text, length: { maximum: 100 }, allow_nil: true
+
+  private
+
+  def section_c?
+    section&.code == "c"
+  end
 end
 ```
 
@@ -349,12 +357,15 @@ end
 - **`question_number`**：`(question_type, section_id)`のスコープ内で一意
 - **`content`**：必須（質問文本文）
 - **`reversed`**：true/false厳密チェック（`presence`だとfalseが誤判定される可能性）
+- **`group_text`**：Cセクションのみ値を持てる（A/B/Dセクションでは必ずNULL）、値がある場合は最大100文字（Issue #97）
 
 ### 備考
 
 - 外部入力なしだが、`reversed`は業務の根幹に関わるためバリデーション厚めに設定
 - 逆転項目の間違いは判定結果に直結するため
 - `calculate_score`メソッド（逆転項目の計算）は実装フェーズで追加
+- **【設計変更 2026/9/5】**：`group_text`カラムを`sections`から`questions`に移設（Issue #97）
+- private メソッド`section_c?`は、`section&.code == "c"`で判定（safe navigation operator を使用）
 
 ---
 

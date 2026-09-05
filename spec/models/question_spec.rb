@@ -97,6 +97,50 @@ RSpec.describe Question, type: :model do
       end
     end
 
+    describe "group_text" do
+      context "セクションが A/B/D の場合" do
+        it "nil の場合は valid" do
+          section_a = create(:section, code: "a")
+          question = build(:question, section: section_a, group_text: nil)
+          expect(question).to be_valid
+        end
+
+        it "値が入っている場合は invalid" do
+          section_a = create(:section, code: "a")
+          question = build(:question, section: section_a, group_text: "何か")
+          expect(question).to be_invalid
+          expect(question.errors[:group_text]).to include("must be blank")
+        end
+      end
+
+      context "セクションが C の場合" do
+        it "nil の場合は valid" do
+          section_c = create(:section, code: "c")
+          question = build(:question, section: section_c, group_text: nil)
+          expect(question).to be_valid
+        end
+
+        it "値が入っている場合は valid" do
+          section_c = create(:section, code: "c")
+          question = build(:question, section: section_c, group_text: "次の人たちはどのくらい気軽に話ができますか?")
+          expect(question).to be_valid
+        end
+
+        it "100文字の場合は valid (境界値)" do
+          section_c = create(:section, code: "c")
+          question = build(:question, section: section_c, group_text: "あ" * 100)
+          expect(question).to be_valid
+        end
+
+        it "101文字の場合は invalid (境界値超え)" do
+          section_c = create(:section, code: "c")
+          question = build(:question, section: section_c, group_text: "あ" * 101)
+          expect(question).to be_invalid
+          expect(question.errors[:group_text]).to include("is too long (maximum is 100 characters)")
+        end
+      end
+    end
+
     describe "section (belongs_to)" do
       it "section が nil の場合は invalid" do
         question = build(:question, section: nil)
