@@ -10,4 +10,12 @@ class Question < ApplicationRecord
                               numericality: { only_integer: true, greater_than: 0 }
   validates :content, presence: true, length: { maximum: 255 }
   validates :reversed, inclusion: { in: [ true, false ] }
+  validates :group_text, absence: true, unless: :section_c?
+  validates :group_text, length: { maximum: 100 }, allow_nil: true
+
+  private
+
+  def section_c?
+    section&.code == "c"
+  end
 end

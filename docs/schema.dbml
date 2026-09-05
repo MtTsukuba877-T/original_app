@@ -106,7 +106,6 @@ Table sections {
   code varchar [not null, note: 'セクション識別コード（a/b/c/d、10文字）']
   name varchar [not null, note: 'セクション名（50文字）']
   intro_text text [not null, note: '受検画面の導入文']
-  group_text text [note: 'NULL許容、Cセクションのみ使用']
   display_order integer [not null, note: '表示順（1〜4）']
   created_at datetime [not null]
   updated_at datetime [not null]
@@ -141,6 +140,7 @@ Table questions {
   question_number integer [not null, note: 'セクション内の質問番号']
   content varchar [not null, note: '質問文本文（255文字）']
   reversed boolean [not null, default: false, note: '逆転項目か否か']
+  group_text varchar [note: 'グループ設問文（Cセクションのみ使用、NULL許容、100文字）']
   created_at datetime [not null]
   updated_at datetime [not null]
 
