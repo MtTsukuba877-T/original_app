@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_23_090553) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_05_002206) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_23_090553) do
     t.boolean "reversed", default: false, null: false, comment: "逆転項目か否か"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "group_text", limit: 100, comment: "グループ設問文(Cセクションのみ使用、NULL許容)"
     t.index ["question_type", "section_id", "question_number"], name: "index_questions_on_type_section_and_number", unique: true
     t.index ["section_id"], name: "index_questions_on_section_id"
   end
@@ -91,7 +92,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_23_090553) do
   create_table "results", force: :cascade do |t|
     t.bigint "employee_id", null: false, comment: "受検者"
     t.bigint "stress_check_period_id", null: false, comment: "所属実施回"
-    t.integer "stress_level", null: false, comment: "enum: 0=high_stress, 1=not_high_stress"
+    t.integer "stress_level", null: false, comment: "enum: 0=high_stress, 1=low_to_moderate_stress"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["employee_id", "stress_check_period_id"], name: "index_results_on_employee_and_period", unique: true
@@ -103,7 +104,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_23_090553) do
     t.string "code", limit: 10, null: false, comment: "セクション識別コード(a/b/c/d、10文字まで)"
     t.string "name", limit: 50, null: false, comment: "セクション名(50文字まで)"
     t.text "intro_text", null: false, comment: "受検画面の導入文"
-    t.text "group_text", comment: "Cセクションのみ使用(NULL許容)"
     t.integer "display_order", null: false, comment: "表示順(1〜4)"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

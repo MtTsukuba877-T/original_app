@@ -1,9 +1,11 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# db/seeds.rb は司令塔ファイル
+# db/seeds/ 配下の各テーブル別ファイルを Load 順に読み込む
+# 依存関係: sections → answer_options / questions
+
+Rails.logger.info "seeds データ投入開始"
+
+load Rails.root.join("db/seeds/sections.rb")
+load Rails.root.join("db/seeds/answer_options.rb")  # Step 4 で有効化
+load Rails.root.join("db/seeds/questions.rb")       # Step 5 で有効化
+
+Rails.logger.info "seeds データ投入完了"
