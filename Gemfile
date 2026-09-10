@@ -31,6 +31,9 @@ gem "devise"
 # Extend Devise with invitation functionality [https://github.com/scambra/devise_invitable]
 gem "devise_invitable"
 
+# Japanese translations for Devise [https://github.com/tigrish/devise-i18n]
+gem "devise-i18n"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
