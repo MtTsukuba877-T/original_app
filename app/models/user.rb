@@ -1,6 +1,14 @@
 class User < ApplicationRecord
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  # Devise モジュール構成:
+  #   採用: :database_authenticatable(メール+パスワード認証)
+  #        :recoverable(パスワードリセット)
+  #        :validatable(メール・パスワードのバリデーション)
+  #        :invitable(招待メール、devise_invitable gem)
+  #   除外: :registerable(新規登録は招待経由のみのため不要)
+  #        :confirmable(メール確認は MVP スコープ外)
+  #        :lockable(アカウントロックは MVP スコープ外)
+  #        :rememberable(セキュリティ優先で除外)
+  #        :timeoutable, :trackable, :omniauthable(未使用)
   devise :invitable, :database_authenticatable,
          :recoverable, :validatable
 

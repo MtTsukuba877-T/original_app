@@ -72,4 +72,15 @@ RSpec.configure do |config|
 
   # FactoryBot syntax methods (create, build, etc.) を FactoryBot. 接頭辞なしで使えるようにする
   config.include FactoryBot::Syntax::Methods
+
+  # Devise テストヘルパー (sign_in / sign_out) を request spec で使えるようにする
+  config.include Devise::Test::IntegrationHelpers, type: :request
+
+  # model spec は英語ロケールで実行(バリデーションエラーメッセージを英語で検証するため)
+  config.before(:each, type: :model) do
+    I18n.locale = :en
+  end
+  config.after(:each, type: :model) do
+    I18n.locale = I18n.default_locale
+  end
 end

@@ -1,0 +1,24 @@
+<div class="min-h-screen bg-gray-50 px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">
+        企業一覧
+      </h1>
+      <p class="text-sm text-gray-500 mb-6">
+        ログイン中: <%= current_user.email %>(<%= current_user.role %>)
+      </p>
+
+      <div class="border border-dashed border-gray-300 rounded-md p-8 text-center text-gray-400">
+        <p class="mb-2">この画面は Issue #16 で実装予定です。</p>
+        <p class="text-sm">現在は動作確認用のプレースホルダーです。</p>
+      </div>
+
+      <div class="mt-6 text-right">
+        <%= button_to "ログアウト",
+              destroy_user_session_path,
+              method: :delete,
+              class: "bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors cursor-pointer" %>
+      </div>
+    </div>
+  </div>
+</div>
