@@ -11,8 +11,8 @@
           </p>
         </div>
         <%= link_to "新規企業登録",
-              "#",
-              class: "bg-blue-500 text-white font-semibold py-2 px-4 rounded-md opacity-50 cursor-not-allowed" %>
+              new_company_path,
+              class: "bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-colors" %>
       </div>
 
       <% if @companies.any? %>
@@ -36,8 +36,8 @@
                   </td>
                   <td class="px-4 py-2 text-sm border-b border-gray-100">
                     <%= link_to company.name,
-                          "#",
-                          class: "text-blue-600 opacity-50 cursor-not-allowed" %>
+                          company_path(company),
+                          class: "text-blue-600 hover:text-blue-800 hover:underline" %>
                   </td>
                 </tr>
               <% end %>
