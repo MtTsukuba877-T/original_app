@@ -11,4 +11,14 @@ class ApplicationController < ActionController::Base
       root_path
     end
   end
+
+  private
+
+  # システム管理者以外がアクセスした場合、TOPページへリダイレクト
+  # Phase 6 で Pundit ポリシーに置き換え予定
+  def require_system_admin
+    return if current_user&.system_admin?
+
+    redirect_to root_path, alert: "このページにアクセスする権限がありません。"
+  end
 end
