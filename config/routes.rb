@@ -14,7 +14,7 @@ Rails.application.routes.draw do
 
   # 開発環境: letter_opener_web のメール確認画面
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
-  
+
   # Defines the root path route ("/")
   root "home#index"
 end
