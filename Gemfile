@@ -65,7 +65,7 @@ group :development do
   gem "web-console"
 
   # 開発環境で送信メールをブラウザで確認できるようにする
-  gem "letter_opener_web", "2.0.0"
+  gem "letter_opener_web", "3.0.0"
 end
 
 group :test do
