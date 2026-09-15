@@ -1,0 +1,11 @@
+ja:
+  activemodel:
+    models:
+      company_registration_form: "企業登録"
+    attributes:
+      company_registration_form:
+        company_name: "企業名"
+        start_date: "受検期間 開始日"
+        end_date: "受検期間 終了日"
+        hr_name: "初代担当者 氏名"
+        hr_email: "初代担当者 メールアドレス"

@@ -8,10 +8,10 @@
     </p>
 
     <div class="space-y-4">
-      <a href="#"
-         class="block w-full text-center bg-[#0B6623] hover:bg-[#094F1B] text-white font-semibold py-3 px-4 rounded-md transition-colors">
+      <%= link_to new_user_session_path,
+            class: "block w-full text-center bg-[#0B6623] hover:bg-[#094F1B] text-white font-semibold py-3 px-4 rounded-md transition-colors" do %>
         システム管理者・企業担当者ログイン
-      </a>
+      <% end %>
 
       <a href="#"
          class="block w-full text-center bg-[#4A90E2] hover:bg-[#3A7BC8] text-white font-semibold py-3 px-4 rounded-md transition-colors">

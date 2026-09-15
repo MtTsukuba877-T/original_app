@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@theme {
+  /* ヘッダー背景(システム管理者・企業担当者) */
+  --color-bottle-green: #0B6623;
+
+  /* 主要ボタン(登録する、更新する、編集する) */
+  --color-primary-green: #159827;
+
+  /* ヘッダー背景(受検者) */
+  --color-employee-navy: #01336E;
+
+  /* 受検者向け画面の主要ボタン(次へ、ログインする、送信する) */
+  --color-employee-blue: #4A90E2;
+}

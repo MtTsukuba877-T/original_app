@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title><%= content_for(:title) || "ストレスチェック管理システム" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="min-h-screen flex flex-col bg-white">
+    <%# ==================== ヘッダー ==================== %>
+    <header class="bg-bottle-green text-white">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">
+          ストレスチェック管理システム
+        </h1>
+        <% if user_signed_in? %>
+          <div class="flex items-center gap-4">
+            <span class="text-sm">
+              <%= current_user.system_admin? ? "システム管理者" : "企業担当者" %>
+              <%= current_user.name %>さん
+            </span>
+            <%= button_to "ログアウト",
+                  destroy_user_session_path,
+                  method: :delete,
+                  class: "bg-white text-bottle-green font-semibold py-1 px-4 rounded border border-white hover:bg-gray-100 transition-colors cursor-pointer text-sm" %>
+          </div>
+        <% end %>
+      </div>
+    </header>
+
+    <%# ==================== フラッシュメッセージ ==================== %>
+    <%= render "shared/flash" %>
+
+    <%# ==================== メインコンテンツ ==================== %>
+    <main class="flex-grow max-w-6xl mx-auto w-full px-6 py-4">
+      <%= yield %>
+    </main>
+
+    <%# ==================== フッター ==================== %>
+    <footer class="bg-gray-100 text-gray-600 text-sm py-4">
+      <div class="max-w-6xl mx-auto px-6 text-center">
+        © 2026 ストレスチェック管理システム
+      </div>
+    </footer>
+  </body>
+</html>
