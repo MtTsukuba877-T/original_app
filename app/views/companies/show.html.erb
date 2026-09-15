@@ -1,67 +1,63 @@
-<div class="min-h-screen bg-gray-50 px-4 py-8">
-  <div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-lg shadow-md p-8">
-      <h1 class="text-3xl font-bold text-gray-800 mb-6">
-        企業詳細
-      </h1>
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">
+    企業詳細
+  </h1>
 
-      <dl class="space-y-4">
-        <div>
-          <dt class="text-sm font-semibold text-gray-500">企業ID</dt>
-          <dd class="text-lg text-gray-800"><%= @company.id %></dd>
-        </div>
-
-        <div>
-          <dt class="text-sm font-semibold text-gray-500">企業名</dt>
-          <dd class="text-lg text-gray-800"><%= @company.name %></dd>
-        </div>
-
-        <div>
-          <dt class="text-sm font-semibold text-gray-500">受検期間</dt>
-          <dd class="text-lg text-gray-800">
-            <% if @stress_check_period %>
-              <%= @stress_check_period.start_date&.strftime("%Y/%m/%d") %>
-              〜
-              <%= @stress_check_period.end_date&.strftime("%Y/%m/%d") %>
-            <% else %>
-              <span class="text-gray-400">未設定</span>
-            <% end %>
-          </dd>
-        </div>
-
-        <div>
-          <dt class="text-sm font-semibold text-gray-500">初代担当者 氏名</dt>
-          <dd class="text-lg text-gray-800">
-            <%= @invited_user&.name || content_tag(:span, "未登録", class: "text-gray-400") %>
-          </dd>
-        </div>
-
-        <div>
-          <dt class="text-sm font-semibold text-gray-500">初代担当者 メールアドレス</dt>
-          <dd class="text-lg text-gray-800">
-            <%= @invited_user&.email || content_tag(:span, "未登録", class: "text-gray-400") %>
-          </dd>
-        </div>
-
-        <div>
-          <dt class="text-sm font-semibold text-gray-500">登録日時</dt>
-          <dd class="text-lg text-gray-800">
-            <%= @company.created_at.strftime("%Y/%m/%d %H:%M") %>
-          </dd>
-        </div>
-      </dl>
-
-      <div class="mt-8 flex justify-between items-center">
-        <%= link_to "戻る",
-              companies_path,
-              class: "text-gray-600 hover:text-gray-800 underline" %>
-        <%= link_to "編集する",
-              "#",
-              class: "bg-gray-400 text-white font-semibold py-2 px-6 rounded-md opacity-50 cursor-not-allowed" %>
-      </div>
-      <p class="text-right text-xs text-red-500 mt-2">
-        【本リリース版で実装】
-      </p>
+  <dl class="space-y-4">
+    <div>
+      <dt class="text-sm font-semibold text-gray-500">企業ID</dt>
+      <dd class="text-lg text-gray-800"><%= @company.id %></dd>
     </div>
+
+    <div>
+      <dt class="text-sm font-semibold text-gray-500">企業名</dt>
+      <dd class="text-lg text-gray-800"><%= @company.name %></dd>
+    </div>
+
+    <div>
+      <dt class="text-sm font-semibold text-gray-500">受検期間</dt>
+      <dd class="text-lg text-gray-800">
+        <% if @stress_check_period %>
+          <%= @stress_check_period.start_date&.strftime("%Y/%m/%d") %>
+          〜
+          <%= @stress_check_period.end_date&.strftime("%Y/%m/%d") %>
+        <% else %>
+          <span class="text-gray-400">未設定</span>
+        <% end %>
+      </dd>
+    </div>
+
+    <div>
+      <dt class="text-sm font-semibold text-gray-500">初代担当者 氏名</dt>
+      <dd class="text-lg text-gray-800">
+        <%= @invited_user&.name || content_tag(:span, "未登録", class: "text-gray-400") %>
+      </dd>
+    </div>
+
+    <div>
+      <dt class="text-sm font-semibold text-gray-500">初代担当者 メールアドレス</dt>
+      <dd class="text-lg text-gray-800">
+        <%= @invited_user&.email || content_tag(:span, "未登録", class: "text-gray-400") %>
+      </dd>
+    </div>
+
+    <div>
+      <dt class="text-sm font-semibold text-gray-500">登録日時</dt>
+      <dd class="text-lg text-gray-800">
+        <%= @company.created_at.strftime("%Y/%m/%d %H:%M") %>
+      </dd>
+    </div>
+  </dl>
+
+  <div class="mt-8 flex justify-between items-center">
+    <%= link_to "戻る",
+          companies_path,
+          class: "text-gray-600 hover:text-gray-800 underline" %>
+    <%= link_to "編集する",
+          "#",
+          class: "bg-gray-400 text-white font-semibold py-2 px-6 rounded-md opacity-50 cursor-not-allowed" %>
   </div>
+  <p class="text-right text-xs text-red-500 mt-2">
+    【本リリース版で実装】
+  </p>
 </div>

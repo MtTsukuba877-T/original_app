@@ -1,4 +1,6 @@
 class CompaniesController < ApplicationController
+  layout "admin"
+
   before_action :authenticate_user!
   before_action :require_system_admin
 
