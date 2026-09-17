@@ -20,4 +20,13 @@ class User < ApplicationRecord
   validates :role, presence: true
   validates :company, presence: true, if: :company_hr?
   validates :company, absence: true, if: :system_admin?
+
+  # パスワード要件: 半角英数字混在で8文字以上
+  # (Devise :validatable のデフォルト「6文字以上」を上書き)
+  validates :password, length: { minimum: 8 },
+                       format: {
+                         with: /\A(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+\z/,
+                         message: "は半角英数字混在で入力してください"
+                       },
+                       if: -> { new_record? || password.present? }
 end

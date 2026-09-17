@@ -9,3 +9,9 @@ ja:
         end_date: "受検期間 終了日"
         hr_name: "初代担当者 氏名"
         hr_email: "初代担当者 メールアドレス"
+  
+  activerecord:
+    attributes:
+      user:
+        password: "パスワード"
+        password_confirmation: "パスワード（確認用）"
