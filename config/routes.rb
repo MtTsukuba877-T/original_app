@@ -2,6 +2,10 @@ Rails.application.routes.draw do
   devise_for :users
   resources :companies, only: [ :index, :new, :create, :show ]
 
+  namespace :company_users do
+    get "dashboard", to: "dashboards#show", as: :dashboard
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

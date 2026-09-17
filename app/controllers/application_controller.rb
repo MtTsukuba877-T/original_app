@@ -6,13 +6,21 @@ class ApplicationController < ActionController::Base
   layout :determine_layout
 
   # Devise: ログイン成功後のリダイレクト先を role 別に分岐
+  # (企業担当者は招待承諾後の初回ログイン時も同じダッシュボードへ遷移)
   def after_sign_in_path_for(resource)
     case resource.role
     when "system_admin"
       companies_path
     else
-      root_path
+      company_users_dashboard_path
     end
+  end
+
+  # Devise: 招待承諾後のリダイレクト先も after_sign_in_path_for に委譲
+  # (devise_invitable のデフォルトは signed_in_root_path (=root_path) のため、
+  #  明示的に after_sign_in_path_for を呼び直す必要がある)
+  def after_accept_path_for(resource)
+    after_sign_in_path_for(resource)
   end
 
   private
