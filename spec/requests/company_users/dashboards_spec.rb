@@ -14,15 +14,27 @@ RSpec.describe "CompanyUsers::Dashboards", type: :request do
 
       before { sign_in admin }
 
-      it "ダッシュボード画面が表示されること" do
+      it "操作メニュー画面が表示されること" do
         get company_users_dashboard_path
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include("企業担当者ダッシュボード")
+        expect(response.body).to include("操作メニュー")
       end
 
       it "ログインユーザー名が表示されること" do
         get company_users_dashboard_path
         expect(response.body).to include(admin.name)
+      end
+
+      it "システム管理者ラベルが表示されること" do
+        get company_users_dashboard_path
+        expect(response.body).to include("システム管理者")
+      end
+
+      it "3つの操作メニューボタンが表示されること" do
+        get company_users_dashboard_path
+        expect(response.body).to include("①受検者一覧")
+        expect(response.body).to include("②受検案内一斉配信")
+        expect(response.body).to include("③受検状況一覧")
       end
     end
 
@@ -31,15 +43,27 @@ RSpec.describe "CompanyUsers::Dashboards", type: :request do
 
       before { sign_in company_hr }
 
-      it "ダッシュボード画面が表示されること" do
+      it "操作メニュー画面が表示されること" do
         get company_users_dashboard_path
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include("企業担当者ダッシュボード")
+        expect(response.body).to include("操作メニュー")
       end
 
       it "ログインユーザー名が表示されること" do
         get company_users_dashboard_path
         expect(response.body).to include(company_hr.name)
+      end
+
+      it "所属企業名が表示されること" do
+        get company_users_dashboard_path
+        expect(response.body).to include(company_hr.company.name)
+      end
+
+      it "3つの操作メニューボタンが表示されること" do
+        get company_users_dashboard_path
+        expect(response.body).to include("①受検者一覧")
+        expect(response.body).to include("②受検案内一斉配信")
+        expect(response.body).to include("③受検状況一覧")
       end
     end
   end
