@@ -2,6 +2,7 @@ ja:
   activemodel:
     models:
       company_registration_form: "企業登録"
+      employee_csv_import_form: "CSV名簿インポート"
     attributes:
       company_registration_form:
         company_name: "企業名"
@@ -9,9 +10,18 @@ ja:
         end_date: "受検期間 終了日"
         hr_name: "初代担当者 氏名"
         hr_email: "初代担当者 メールアドレス"
+      employee_csv_import_form:
+        csv_file: "CSVファイル"
   
   activerecord:
     attributes:
       user:
         password: "パスワード"
         password_confirmation: "パスワード（確認用）"
+      employee:
+        examinee_number: "受検者番号"
+        name: "氏名"
+        date_of_birth: "生年月日"
+        sex: "性別"
+        department: "所属部署"
+        email: "メールアドレス"

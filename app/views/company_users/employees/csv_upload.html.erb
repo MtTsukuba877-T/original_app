@@ -1,0 +1,95 @@
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <%# タイトル + 説明文 %>
+  <h1 class="text-2xl font-bold text-gray-900 mb-2">名簿アップロード</h1>
+  <p class="text-sm text-gray-700 mb-6">
+    受検者名簿のCSVファイルをアップロードして、受検者情報を登録してください。<br>
+    既存の受検者情報に追加する形で登録されます。
+  </p>
+
+  <%# フォームオブジェクト自体のバリデーションエラー（csv_file 未選択等） %>
+  <% if @form&.errors&.any? %>
+    <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg p-4 mb-6">
+      <ul class="list-disc list-inside text-sm">
+        <% @form.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# メインカード（① テンプレートDL / ② CSVアップロード の2カラム） %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+    <%# ① テンプレートをダウンロード %>
+    <div class="bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">
+        ① テンプレートをダウンロード
+      </h2>
+      <p class="text-sm text-gray-700 mb-6">
+        下記「テンプレートCSVをダウンロード」をクリックしてCSVを取得し、<br>
+        受検者一覧を作成してください。<br>
+        <span class="text-red-600">※テンプレートに含まれるサンプルデータは削除してご使用ください。</span>
+      </p>
+      <div class="flex justify-center">
+        <%= link_to "テンプレートCSVをダウンロード",
+                    csv_template_company_users_employees_path,
+                    class: "inline-block px-6 py-2 border border-gray-400 rounded hover:bg-gray-50 text-gray-800" %>
+      </div>
+    </div>
+
+    <%# ② CSVファイルをアップロード %>
+    <div class="bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">
+        ② CSVファイルをアップロード
+      </h2>
+      <p class="text-sm text-gray-700 mb-4">
+        下記「ファイルを選択」をクリックしてCSVファイルを選択し、<br>
+        「アップロード」をクリックしてアップロードします。
+      </p>
+      <%= form_with model: @form,
+                    url: csv_import_company_users_employees_path,
+                    method: :post,
+                    multipart: true,
+                    local: true do |f| %>
+        <div class="mb-4">
+          <%= f.file_field :csv_file,
+                           accept: ".csv",
+                           class: "block w-full text-sm text-gray-700 file:mr-2 file:py-2 file:px-4 file:rounded file:border file:border-gray-400 file:bg-white file:text-gray-800 file:cursor-pointer hover:file:bg-gray-50" %>
+        </div>
+        <p class="text-xs text-red-600 mb-4">
+          ※1件でも不備がある場合は全件を取り込めませんのでご注意ください。
+        </p>
+        <div class="flex justify-center">
+          <%= f.submit "アップロード",
+                       class: "inline-block px-8 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+
+  <%# 取り込みエラー表示エリア（全件ロールバック時のエラー行一覧） %>
+  <% if @form&.error_rows&.any? %>
+    <div class="bg-red-50 border border-red-300 text-red-800 rounded-lg p-4 mb-6">
+      <h3 class="font-semibold mb-2">取り込みエラー（全件拒否されました）</h3>
+      <p class="text-sm mb-3">以下の不備を修正の上、再度アップロードしてください。</p>
+      <ul class="list-disc list-inside text-sm space-y-1">
+        <% @form.error_rows.each do |error| %>
+          <% error[:messages].each do |message| %>
+            <li><%= error[:row_number] %>行目: <%= message %></li>
+          <% end %>
+        <% end %>
+      </ul>
+      <p class="text-sm mt-3 font-semibold">
+        合計: <%= @form.error_rows.sum { |e| e[:messages].size } %>件のエラー
+      </p>
+    </div>
+  <% end %>
+
+  <%# 戻るボタン %>
+  <div class="mb-4">
+    <%# Issue #25 完了後に受検者一覧画面へのリンクに張り替え予定 %>
+    <%= link_to "戻る", "#",
+                class: "inline-block px-6 py-2 border border-gray-400 rounded hover:bg-gray-50 text-gray-800" %>
+  </div>
+</div>
