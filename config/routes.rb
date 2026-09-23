@@ -4,6 +4,17 @@ Rails.application.routes.draw do
 
   namespace :company_users do
     get "dashboard", to: "dashboards#show", as: :dashboard
+
+    # 名簿管理関連（Issue #23: CSV 名簿アップロード機能）
+    # MVP では CSV アップロードとテンプレートダウンロードのみ実装。
+    # Issue #25 で index（名簿一覧）、本リリース版で個別追加・編集（Issue #26, #27）を追加予定。
+    resources :employees, only: [] do
+      collection do
+        get :csv_upload           # CSV アップロード画面表示
+        post :csv_import          # CSV アップロード実行
+        get :csv_template         # テンプレート CSV ダウンロード
+      end
+    end
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

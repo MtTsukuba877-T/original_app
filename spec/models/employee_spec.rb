@@ -128,39 +128,71 @@ RSpec.describe Employee, type: :model do
     end
 
     describe "password" do
-      it "8文字の場合は valid (境界値、英数字混在)" do
-        employee = build(:employee, password: "abcde123")
-        expect(employee).to be_valid
+      # password バリデーションは password_changed_at が present の場合のみ適用される仕様
+      # （Issue #23 で変更、初期パスワード=生年月日を許容するため）。
+      # そのため、バリデーションが走ることを検証するテストは password_changed_at をセットする。
+      #
+      # 【MVP時点の仕様範囲】
+      # - モデル spec は「バリデーションの条件式が正しく機能すること」の検証に留める。
+      # - 「初期パスワード=生年月日」という業務仕様の検証は、
+      #   Issue #23 で作成する spec/forms/employee_csv_import_form_spec.rb で行う。
+      # - 本リリース版で個別登録機能（Issue #26）が追加された際は、
+      #   そのフォームオブジェクト spec に別途「手入力時の初期パス生成ロジック」の検証を追加する。
+
+      context "password_changed_at が nil の場合（初回ログイン扱い）" do
+        it "数字のみ8桁（生年月日想定）でも valid（CSV 名簿登録時の初期パスワードを許容）" do
+          employee = build(:employee, password: "19800315", password_changed_at: nil)
+          expect(employee).to be_valid
+        end
+
+        it "7文字（境界値未満）でも valid（バリデーションがスキップされる）" do
+          employee = build(:employee, password: "abc1234", password_changed_at: nil)
+          expect(employee).to be_valid
+        end
+
+        it "英字のみでも valid（バリデーションがスキップされる）" do
+          employee = build(:employee, password: "onlyalphabet", password_changed_at: nil)
+          expect(employee).to be_valid
+        end
       end
 
-      it "7文字の場合は invalid (境界値未満)" do
-        employee = build(:employee, password: "abc1234")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("is too short (minimum is 8 characters)")
-      end
+      context "password_changed_at が present の場合（変更後の再変更）" do
+        let(:changed_at) { Time.current }
 
-      it "英字のみの場合は invalid (数字なし)" do
-        employee = build(:employee, password: "onlyalphabet")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
-      end
+        it "8文字の英数字混在の場合は valid (境界値)" do
+          employee = build(:employee, password: "abcde123", password_changed_at: changed_at)
+          expect(employee).to be_valid
+        end
 
-      it "数字のみの場合は invalid (英字なし)" do
-        employee = build(:employee, password: "12345678")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
-      end
+        it "7文字の場合は invalid (境界値未満)" do
+          employee = build(:employee, password: "abc1234", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("is too short (minimum is 8 characters)")
+        end
 
-      it "記号を含む場合は invalid" do
-        employee = build(:employee, password: "abcd123!")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
-      end
+        it "英字のみの場合は invalid (数字なし)" do
+          employee = build(:employee, password: "onlyalphabet", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
 
-      it "日本語を含む場合は invalid" do
-        employee = build(:employee, password: "abc123あい")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        it "数字のみの場合は invalid (英字なし)" do
+          employee = build(:employee, password: "12345678", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
+
+        it "記号を含む場合は invalid" do
+          employee = build(:employee, password: "abcd123!", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
+
+        it "日本語を含む場合は invalid" do
+          employee = build(:employee, password: "abc123あい", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
       end
     end
 
