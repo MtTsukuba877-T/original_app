@@ -30,6 +30,11 @@ RSpec.describe "CompanyUsers::Dashboards", type: :request do
         expect(response.body).to include("システム管理者")
       end
 
+      it "企業IDが表示されないこと" do
+        get company_users_dashboard_path
+        expect(response.body).not_to include("企業ID：")
+      end
+
       it "3つの操作メニューボタンが表示されること" do
         get company_users_dashboard_path
         expect(response.body).to include("①受検者一覧")
@@ -57,6 +62,11 @@ RSpec.describe "CompanyUsers::Dashboards", type: :request do
       it "所属企業名が表示されること" do
         get company_users_dashboard_path
         expect(response.body).to include(company_hr.company.name)
+      end
+
+      it "ヘッダーに所属企業の企業IDが表示されること" do
+        get company_users_dashboard_path
+        expect(response.body).to include("（企業ID：#{company_hr.company.id}）")
       end
 
       it "3つの操作メニューボタンが表示されること" do

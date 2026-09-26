@@ -31,7 +31,7 @@
               <% if current_user.system_admin? %>
                 システム管理者 <%= current_user.name %>さん
               <% else %>
-                <%= current_user.company.name %> <%= current_user.name %>さん
+                <%= current_user.company.name %>（企業ID：<%= current_user.company.id %>） <%= current_user.name %>さん
               <% end %>
             </span>
             <%= button_to "ログアウト",
