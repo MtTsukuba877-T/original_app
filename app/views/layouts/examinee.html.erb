@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title><%= content_for(:title) || "ストレスチェック" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <%# 受検者用レイアウト（Issue #39） %>
+  <%# 画面レイアウト仕様書「3. 受検者向け画面」に準拠。スマホ幅（max-w-md）を基準とする。 %>
+  <body class="min-h-screen flex flex-col bg-white">
+    <%# ==================== ヘッダー ==================== %>
+    <header class="bg-employee-navy text-white">
+      <div class="max-w-md mx-auto px-4 py-4 text-center">
+        <span class="text-lg font-medium"><%= content_for(:header_title) || "ストレスチェック" %></span>
+      </div>
+    </header>
+
+    <%# ==================== フラッシュメッセージ ==================== %>
+    <%= render "shared/flash" %>
+
+    <%# ==================== メインコンテンツ ==================== %>
+    <main class="flex-grow w-full max-w-md mx-auto px-4 py-6">
+      <%= yield %>
+    </main>
+
+    <%# ==================== フッター（スマホ向けに簡略化） ==================== %>
+    <footer class="py-3">
+      <p class="text-center text-xs text-gray-400">© 2026 ストレスチェック</p>
+    </footer>
+  </body>
+</html>

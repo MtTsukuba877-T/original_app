@@ -17,6 +17,15 @@ Rails.application.routes.draw do
     end
   end
 
+  # 受検者機能（Phase 5）
+  # 受検者は Devise ではなく独自の SessionsController で認証する（Issue #39）。
+  # ログアウト（Issue #47）は後続 Issue で追加予定。
+  namespace :examinees do
+    get "sign_in", to: "sessions#new", as: :sign_in
+    post "sign_in", to: "sessions#create"
+    get "home", to: "homes#show", as: :home
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

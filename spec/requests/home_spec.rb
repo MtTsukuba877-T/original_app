@@ -8,6 +8,11 @@ RSpec.describe "Home", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("MVP 動作確認用トップページ")
       end
+
+      it "受検者ログイン画面へのリンクが表示されること" do
+        get root_path
+        expect(response.body).to include(%(href="#{examinees_sign_in_path}"))
+      end
     end
 
     context "system_admin でログイン済の場合" do
