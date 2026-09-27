@@ -20,11 +20,13 @@ Rails.application.routes.draw do
   # 受検者機能（Phase 5）
   # 受検者は Devise ではなく独自の SessionsController で認証する（Issue #39）。
   # ログアウトは Issue #47 で追加。
+  # 強制パスワード変更は Issue #40 で追加。
   namespace :examinees do
     get "sign_in", to: "sessions#new", as: :sign_in
     post "sign_in", to: "sessions#create"
     delete "sign_out", to: "sessions#destroy", as: :sign_out
     get "home", to: "homes#show", as: :home
+    resource :password, only: [ :edit, :update ]
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

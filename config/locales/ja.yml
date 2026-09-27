@@ -25,3 +25,5 @@ ja:
         sex: "性別"
         department: "所属部署"
         email: "メールアドレス"
+        password: "パスワード"
+        password_confirmation: "パスワード（確認用）"

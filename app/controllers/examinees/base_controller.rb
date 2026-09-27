@@ -12,6 +12,7 @@ class Examinees::BaseController < ApplicationController
   rescue_from ActionController::InvalidAuthenticityToken, with: :handle_invalid_authenticity_token
 
   before_action :authenticate_employee!
+  before_action :ensure_password_changed!
 
   helper_method :current_employee, :employee_signed_in?
 
@@ -34,6 +35,14 @@ class Examinees::BaseController < ApplicationController
     return if employee_signed_in?
 
     redirect_to examinees_sign_in_path, alert: "ログインしてください。"
+  end
+
+  # 初期パスワードのままの受検者を、パスワード変更画面（E-4）へ移動させる（Issue #40）。
+  # 受検者画面を開くたびに確認するので、URL を直接入力しても E-4 を飛ばすことはできない。
+  def ensure_password_changed!
+    return unless current_employee.password_change_required?
+
+    redirect_to edit_examinees_password_path
   end
 
   # CSRF トークン不一致時の処理

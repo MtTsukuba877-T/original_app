@@ -12,7 +12,7 @@ RSpec.describe "Examinees::Homes", type: :request do
     end
 
     context "ログイン済の場合" do
-      let(:employee) { create(:employee, password: "password123") }
+      let(:employee) { create(:employee, :password_changed, password: "password123") }
 
       before do
         post examinees_sign_in_path, params: {
@@ -37,6 +37,23 @@ RSpec.describe "Examinees::Homes", type: :request do
       it "ログアウトボタンに確認ポップアップが設定されていないこと" do
         get examinees_home_path
         expect(response.body).not_to include("data-turbo-confirm")
+      end
+    end
+
+    context "ログイン済・初期パスワードのままの場合（Issue #40）" do
+      let(:employee) { create(:employee, password: "19900101") }
+
+      before do
+        post examinees_sign_in_path, params: {
+          company_id: employee.company_id,
+          examinee_number: employee.examinee_number,
+          password: "19900101"
+        }
+      end
+
+      it "URL を直接入力しても、パスワード変更画面にリダイレクトすること" do
+        get examinees_home_path
+        expect(response).to redirect_to(edit_examinees_password_path)
       end
     end
   end

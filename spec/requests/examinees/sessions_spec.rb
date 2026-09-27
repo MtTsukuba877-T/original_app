@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "Examinees::Sessions", type: :request do
   let(:company) { create(:company) }
-  let!(:employee) { create(:employee, company: company, examinee_number: "EMP001", password: "password123") }
+  let!(:employee) { create(:employee, :password_changed, company: company, examinee_number: "EMP001", password: "password123") }
 
   # 正しいログイン情報（失敗パターンでは、必要な項目だけ merge で上書きする）
   let(:valid_params) do
@@ -47,6 +47,26 @@ RSpec.describe "Examinees::Sessions", type: :request do
         expect(response.body).to include("#{employee.name}さん")
       end
     end
+
+    context "初期パスワードのままの受検者の場合" do
+      let!(:initial_employee) { create(:employee, company: company, examinee_number: "EMP002", password: "19900101") }
+      let(:initial_params) { valid_params.merge(examinee_number: "EMP002", password: "19900101") }
+
+      it "パスワード変更画面にリダイレクトすること" do
+        post examinees_sign_in_path, params: initial_params
+        expect(response).to redirect_to(edit_examinees_password_path)
+      end
+
+      it "リダイレクト先で、ログイン完了メッセージが表示されないこと" do
+        post examinees_sign_in_path, params: initial_params
+        follow_redirect!
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("初回ログインのため、新しいパスワードを設定してください")
+        expect(response.body).not_to include("ログインしました。")
+      end
+    end
+
+
 
     context "企業IDが存在しない場合" do
       it "ログイン画面を再表示し、エラーメッセージを表示すること" do
