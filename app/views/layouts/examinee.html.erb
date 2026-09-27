@@ -22,9 +22,12 @@
   <%# 画面レイアウト仕様書「3. 受検者向け画面」に準拠。スマホ幅（max-w-md）を基準とする。 %>
   <body class="min-h-screen flex flex-col bg-white">
     <%# ==================== ヘッダー ==================== %>
+    <%# ログアウトボタンは各画面で content_for(:header_right, ...) を指定したときだけ表示する（Issue #47）。 %>
+    <%# ボタンあり: タイトル左・ボタン右 / ボタンなし: タイトル中央 %>
     <header class="bg-employee-navy text-white">
-      <div class="max-w-md mx-auto px-4 py-4 text-center">
+      <div class="max-w-md mx-auto px-4 py-4 <%= content_for?(:header_right) ? "flex items-center justify-between" : "text-center" %>">
         <span class="text-lg font-medium"><%= content_for(:header_title) || "ストレスチェック" %></span>
+        <%= yield :header_right %>
       </div>
     </header>
 
