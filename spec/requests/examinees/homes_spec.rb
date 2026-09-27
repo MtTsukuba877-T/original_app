@@ -27,6 +27,17 @@ RSpec.describe "Examinees::Homes", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("#{employee.name}さん")
       end
+
+      it "ヘッダーにログアウトボタンが表示されること" do
+        get examinees_home_path
+        expect(response.body).to include(%(action="#{examinees_sign_out_path}"))
+        expect(response.body).to include("ログアウト")
+      end
+
+      it "ログアウトボタンに確認ポップアップが設定されていないこと" do
+        get examinees_home_path
+        expect(response.body).not_to include("data-turbo-confirm")
+      end
     end
   end
 end

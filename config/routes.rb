@@ -19,10 +19,11 @@ Rails.application.routes.draw do
 
   # 受検者機能（Phase 5）
   # 受検者は Devise ではなく独自の SessionsController で認証する（Issue #39）。
-  # ログアウト（Issue #47）は後続 Issue で追加予定。
+  # ログアウトは Issue #47 で追加。
   namespace :examinees do
     get "sign_in", to: "sessions#new", as: :sign_in
     post "sign_in", to: "sessions#create"
+    delete "sign_out", to: "sessions#destroy", as: :sign_out
     get "home", to: "homes#show", as: :home
   end
 

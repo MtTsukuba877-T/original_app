@@ -16,6 +16,11 @@ RSpec.describe "Examinees::Sessions", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("ストレスチェック ログイン")
       end
+
+      it "ログアウトボタンが表示されないこと" do
+        get examinees_sign_in_path
+        expect(response.body).not_to include(examinees_sign_out_path)
+      end
     end
 
     context "ログイン済の場合" do
@@ -98,6 +103,38 @@ RSpec.describe "Examinees::Sessions", type: :request do
         expect(response).to redirect_to(examinees_sign_in_path)
         follow_redirect!
         expect(response.body).to include("画面の有効期限が切れました。")
+      end
+    end
+  end
+
+  describe "DELETE /examinees/sign_out" do
+    context "ログイン済の場合" do
+      before { post examinees_sign_in_path, params: valid_params }
+
+      it "TOP画面にリダイレクトすること" do
+        delete examinees_sign_out_path
+        expect(response).to redirect_to(root_path)
+      end
+
+      it "リダイレクト先で、ログアウト完了メッセージが表示されること" do
+        delete examinees_sign_out_path
+        follow_redirect!
+        expect(response.body).to include("ログアウトしました。")
+      end
+
+      it "ログアウト後は受検者トップ画面を開けないこと" do
+        delete examinees_sign_out_path
+        get examinees_home_path
+        expect(response).to redirect_to(examinees_sign_in_path)
+      end
+    end
+
+    context "未ログインの場合" do
+      it "ログイン画面にリダイレクトし、ログインを促すメッセージを表示すること" do
+        delete examinees_sign_out_path
+        expect(response).to redirect_to(examinees_sign_in_path)
+        follow_redirect!
+        expect(response.body).to include("ログインしてください。")
       end
     end
   end

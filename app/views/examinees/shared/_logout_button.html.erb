@@ -1,0 +1,9 @@
+<%# locals: (confirm: nil) -%>
+<%# 受検者用ログアウトボタン（Issue #47） %>
+<%# 各画面のビューで content_for(:header_right, render(...)) として使う。 %>
+<%# 確認ポップアップが必要な画面（E-5a〜E-5d）では confirm: にメッセージを渡す。 %>
+<%= button_to "ログアウト",
+      examinees_sign_out_path,
+      method: :delete,
+      form: { data: { turbo_confirm: confirm } },
+      class: "text-white text-sm py-1 px-3 rounded border border-white hover:bg-white/10 transition-colors cursor-pointer" %>

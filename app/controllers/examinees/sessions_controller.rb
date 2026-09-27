@@ -1,4 +1,4 @@
-# 受検者のログイン処理（Issue #39）
+# 受検者のログイン・ログアウト処理（Issue #39、#47）
 #
 # MVP では「企業ID + 受検者番号 + パスワード」の3点で認証する。
 # 受検者番号は企業内でのみ一意（company_id とのセットで unique）のため、
@@ -22,5 +22,10 @@ class Examinees::SessionsController < Examinees::BaseController
       @login_error = "企業ID、受検者番号またはパスワードが正しくありません。ご確認ください。"
       render :new, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    reset_session
+    redirect_to root_path, notice: "ログアウトしました。"
   end
 end
