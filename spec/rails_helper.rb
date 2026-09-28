@@ -76,6 +76,9 @@ RSpec.configure do |config|
   # Devise テストヘルパー (sign_in / sign_out) を request spec で使えるようにする
   config.include Devise::Test::IntegrationHelpers, type: :request
 
+  # travel（時間を進める）などを使えるようにする（Issue #40 セッションタイムアウトの spec 用）
+  config.include ActiveSupport::Testing::TimeHelpers
+
   # model spec は英語ロケールで実行(バリデーションエラーメッセージを英語で検証するため)
   config.before(:each, type: :model) do
     I18n.locale = :en

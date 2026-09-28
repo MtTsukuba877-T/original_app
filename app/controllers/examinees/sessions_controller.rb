@@ -6,6 +6,7 @@
 class Examinees::SessionsController < Examinees::BaseController
   skip_before_action :authenticate_employee!, only: %i[new create]
   skip_before_action :ensure_password_changed!, only: %i[new create destroy]
+  skip_before_action :expire_session_if_timed_out!, only: %i[create]
 
   def new
     redirect_to examinees_home_path if employee_signed_in?
@@ -18,6 +19,7 @@ class Examinees::SessionsController < Examinees::BaseController
     if employee&.authenticate(params[:password])
       reset_session
       session[:employee_id] = employee.id
+      record_last_active_at
       # 初期パスワードのままなら、「ログインしました。」を出さずに直接 E-4 へ（Issue #40）
       if employee.password_change_required?
         redirect_to edit_examinees_password_path
