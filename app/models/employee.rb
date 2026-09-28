@@ -38,4 +38,14 @@ class Employee < ApplicationRecord
                          message: "は半角英数字混在で入力してください"
                        },
                        if: -> { password_changed_at.present? && password.present? }
+
+  # パスワード変更画面（E-4）で保存するときだけ、パスワードの入力を必須にする（Issue #40）。
+  # has_secure_password は空欄を「変更なし」として無視するため、このチェックがないと、
+  # 初期パスワードのまま password_changed_at だけが更新されてしまう。
+  validates :password, presence: true, on: :password_change
+
+  # 初期パスワードのまま（まだ変更していない）かどうか
+  def password_change_required?
+    password_changed_at.nil?
+  end
 end
