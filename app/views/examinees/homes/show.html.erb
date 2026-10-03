@@ -1,11 +1,11 @@
-<% content_for(:title, "トップ | ストレスチェック") %>
+<% content_for(:title, "受検期間外 | ストレスチェック") %>
 <% content_for(:header_right, render("examinees/shared/logout_button")) %>
 
-<%# Issue #39 時点の仮画面。Issue #41 以降で受検画面への導線を追加する。 %>
+<%# 受検期間外の受検者だけに表示する画面（Issue #41）。受検期間内の受検者は受検画面（E-5a）へ移動する。 %>
 <div class="text-center space-y-4">
   <p class="text-gray-900"><%= current_employee.name %>さん</p>
   <p class="text-sm text-gray-500">
-    ログインが完了しました。<br>
-    受検画面は現在準備中です。
+    現在は受検期間外のため、受検できません。<br>
+    受検期間については、会社のご担当者にお問い合わせください。
   </p>
 </div>

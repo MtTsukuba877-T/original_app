@@ -1,4 +1,4 @@
-# 受検者機能の共通親コントローラー（Issue #39、#40）
+# 受検者機能の共通親コントローラー（Issue #39、#40、#41）
 #
 # 受検者（Employee）は Devise ではなく独自のセッション管理で認証する。
 # ログイン状態は session[:employee_id] に Employee の id を保存して保持する。
@@ -36,6 +36,13 @@ class Examinees::BaseController < ApplicationController
   # 受検者がログイン中かどうか
   def employee_signed_in?
     current_employee.present?
+  end
+
+  # ログイン中の受検者の会社で、今日が受検期間内の実施回を返す（なければ nil）（Issue #41）。
+  # 振り分け（HomesController）と受検画面（SectionsController）の両方で使う。
+  # MVP は1企業1実施回のため、最初の1件を使う。
+  def current_stress_check_period
+    @current_stress_check_period ||= current_employee.company.stress_check_periods.in_examination_period.first
   end
 
   # 未ログインの受検者をログイン画面へ戻す
