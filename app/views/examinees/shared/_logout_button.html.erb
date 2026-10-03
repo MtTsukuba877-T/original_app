@@ -1,9 +1,11 @@
 <%# locals: (confirm: nil) -%>
-<%# 受検者用ログアウトボタン（Issue #47） %>
+<%# 受検者用ログアウトボタン（Issue #47、#41） %>
 <%# 各画面のビューで content_for(:header_right, render(...)) として使う。 %>
 <%# 確認ポップアップが必要な画面（E-5a〜E-5d）では confirm: にメッセージを渡す。 %>
+<%# このアプリはブラウザ側で Turbo を読み込んでいないため、data-turbo-confirm は効かない。 %>
+<%# そのため、送信前にブラウザ標準の確認ダイアログ（JavaScript の confirm）を出す（Issue #41）。 %>
 <%= button_to "ログアウト",
       examinees_sign_out_path,
       method: :delete,
-      form: { data: { turbo_confirm: confirm } },
+      form: { onsubmit: confirm.present? ? "return confirm(#{confirm.to_json});" : nil },
       class: "text-white text-sm py-1 px-3 rounded border border-white hover:bg-white/10 transition-colors cursor-pointer" %>

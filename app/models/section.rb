@@ -8,4 +8,14 @@ class Section < ApplicationRecord
   validates :intro_text, presence: true
   validates :display_order, presence: true, uniqueness: true,
              numericality: { only_integer: true, greater_than: 0 }
+
+  # 表示順で1つ前のセクション（最初のセクションなら nil）（Issue #41）
+  def previous_section
+    Section.where("display_order < ?", display_order).order(:display_order).last
+  end
+
+  # 表示順で1つ後のセクション（最後のセクションなら nil）（Issue #41）
+  def next_section
+    Section.where("display_order > ?", display_order).order(:display_order).first
+  end
 end
