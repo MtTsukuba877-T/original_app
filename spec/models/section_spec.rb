@@ -95,4 +95,25 @@ RSpec.describe Section, type: :model do
       end
     end
   end
+
+  describe "#previous_section と #next_section（Issue #41）" do
+    let!(:first_section) { create(:section, display_order: 1) }
+    let!(:second_section) { create(:section, display_order: 2) }
+    let!(:third_section) { create(:section, display_order: 3) }
+
+    it "最初のセクションは、前が nil、次が2番目のセクションであること" do
+      expect(first_section.previous_section).to be_nil
+      expect(first_section.next_section).to eq(second_section)
+    end
+
+    it "途中のセクションは、前が1番目、次が3番目のセクションであること" do
+      expect(second_section.previous_section).to eq(first_section)
+      expect(second_section.next_section).to eq(third_section)
+    end
+
+    it "最後のセクションは、前が2番目、次が nil であること" do
+      expect(third_section.previous_section).to eq(second_section)
+      expect(third_section.next_section).to be_nil
+    end
+  end
 end

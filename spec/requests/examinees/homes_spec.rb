@@ -22,21 +22,61 @@ RSpec.describe "Examinees::Homes", type: :request do
         }
       end
 
-      it "受検者トップ画面が表示されること" do
-        get examinees_home_path
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("#{employee.name}さん")
+      context "自社の実施回が受検期間内の場合（Issue #41）" do
+        before do
+          create(:stress_check_period, company: employee.company,
+                                       start_date: Date.current - 1,
+                                       end_date: Date.current + 1)
+        end
+
+        it "受検画面（E-5a）にリダイレクトすること" do
+          get examinees_home_path
+          expect(response).to redirect_to(examinees_section_path("a"))
+        end
       end
 
-      it "ヘッダーにログアウトボタンが表示されること" do
-        get examinees_home_path
-        expect(response.body).to include(%(action="#{examinees_sign_out_path}"))
-        expect(response.body).to include("ログアウト")
+      context "実施回がない場合（Issue #41）" do
+        it "受検期間外の画面が表示されること" do
+          get examinees_home_path
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("#{employee.name}さん")
+          expect(response.body).to include("現在は受検期間外のため、受検できません。")
+        end
+
+        it "ヘッダーにログアウトボタンが表示されること" do
+          get examinees_home_path
+          expect(response.body).to include(%(action="#{examinees_sign_out_path}"))
+          expect(response.body).to include("ログアウト")
+        end
+
+        it "ログアウトボタンに確認ポップアップが設定されていないこと" do
+          get examinees_home_path
+          expect(response.body).not_to include("onsubmit")
+        end
       end
 
-      it "ログアウトボタンに確認ポップアップが設定されていないこと" do
-        get examinees_home_path
-        expect(response.body).not_to include("data-turbo-confirm")
+      context "自社の実施回の期間が未設定の場合（Issue #41）" do
+        before do
+          create(:stress_check_period, company: employee.company, start_date: nil, end_date: nil)
+        end
+
+        it "受検期間外の画面が表示されること" do
+          get examinees_home_path
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("現在は受検期間外のため、受検できません。")
+        end
+      end
+
+      context "他社の実施回だけが受検期間内の場合（Issue #41）" do
+        before do
+          create(:stress_check_period, start_date: Date.current - 1, end_date: Date.current + 1)
+        end
+
+        it "受検期間外の画面が表示されること（他社の受検期間で受検できないこと）" do
+          get examinees_home_path
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("現在は受検期間外のため、受検できません。")
+        end
       end
     end
 
