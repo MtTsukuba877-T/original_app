@@ -1,0 +1,29 @@
+<% content_for(:title, "受検完了 | ストレスチェック") %>
+<% content_for(:header_right, render("examinees/shared/logout_button")) %>
+
+<%# 受検済みの受検者に表示する仮の画面（Issue #42）。 %>
+<%# 結果表示画面（E-6・E-6'）の画面イメージのうち、判定結果以外の部分を先に作ったもの。 %>
+<%# 画面イメージにはない企業名・氏名と、ログアウトの案内を加えている。 %>
+<div class="pt-8 text-center">
+  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
+    <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+
+  <h2 class="mt-8 text-lg font-bold text-gray-900">受検が完了しました</h2>
+
+  <div class="mt-6 text-gray-900">
+    <p><%= current_employee.company.name %></p>
+    <p><%= current_employee.name %>さん</p>
+  </div>
+
+  <p class="mt-6 text-sm text-gray-900">ご協力ありがとうございました。</p>
+
+  <%# Issue #46 で、ここに「以下があなたの判定結果です。」と判定結果の枠を加える。 %>
+
+  <p class="mt-8 text-sm text-gray-500">
+    画面右上の「ログアウト」ボタンから、<br>
+    ログアウトしてください。
+  </p>
+</div>

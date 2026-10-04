@@ -1,16 +1,19 @@
-# 受検画面（E-5a〜E-5d）（Issue #41）
+# 受検画面（E-5a〜E-5d）（Issue #41、#42）
 #
 # 57問をセクション（A〜D）ごとに1画面ずつ表示する。URL の :code はセクションのコード（a〜d）。
 # 回答は「次へ」「戻る」を押すたびに session[:answers] に一時的に預け、
-# 「回答を送信する」で DB に保存する（DB への保存は Issue #42）。
+# 「回答を送信する」で DB（stress_check_responses）にまとめて保存する（Issue #42）。
 # MVP では途中保存を行わないため、ログアウトやタイムアウトで session が消えると回答も消える。
+# 受検は1回限りのため、受検済みの受検者がこの画面を開いたときは、振り分け係（受検者トップ画面）へ戻す。
 #
 # session[:answers] の形: { "質問のID（文字列）" => 選んだ番号（1〜4の整数）, ... }
 # （session は Cookie に JSON で保存されるため、キーは文字列になる）
 class Examinees::SectionsController < Examinees::BaseController
   UNANSWERED_MESSAGE = "未回答の質問があります。すべての質問に回答してください。".freeze
+  SAVE_FAILED_MESSAGE = "回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。".freeze
 
   before_action :redirect_unless_in_examination_period
+  before_action :redirect_if_responded
   before_action :set_section
   before_action :redirect_if_previous_sections_unanswered
   before_action :set_section_contents
@@ -41,6 +44,14 @@ class Examinees::SectionsController < Examinees::BaseController
   # 振り分け係が、受検期間外であることを表示する。
   def redirect_unless_in_examination_period
     redirect_to examinees_home_path if current_stress_check_period.nil?
+  end
+
+  # 受検済みの受検者は、振り分け係へ戻す（Issue #42）。振り分け係が、受検が完了したことを表示する。
+  # URL の直接入力や、「回答を送信する」を2回押した場合に備える。
+  def redirect_if_responded
+    return unless current_employee.responded_to?(current_stress_check_period)
+
+    clear_answers_and_redirect_to_home
   end
 
   # URL の :code からセクションを探す。存在しないコードのときは E-5a へ戻す。
@@ -96,16 +107,41 @@ class Examinees::SectionsController < Examinees::BaseController
     Section.order(:display_order).find { |section| unanswered_questions(section).any? }
   end
 
-  # 「回答を送信する」を押したとき（最後のセクション）。全57問がそろっているか確認する。
-  # Issue #41 時点では仮の動きとして、受検者トップ画面へ移動する（受検期間内なので E-5a が表示される）。
-  # DB への保存は Issue #42、結果表示画面（E-6）への移動は Issue #46 で実装する。
+  # 「回答を送信する」を押したとき（最後のセクション）。
+  # 全57問がそろっているか確認し、そろっていれば DB に保存する（Issue #42）。
   def complete_examination
     section = first_unanswered_section
 
     if section
       redirect_to examinees_section_path(section.code), alert: UNANSWERED_MESSAGE
     else
-      redirect_to examinees_home_path, notice: "全57問の回答を確認しました。（回答の保存は Issue #42 で実装予定）"
+      save_responses
     end
+  end
+
+  # 預かっている回答を DB に保存し、振り分け係へ移動する（Issue #42）。
+  # 保存に失敗しても Rails のエラー画面は出さない。
+  # 「回答を送信する」を2回押した場合、後の送信は重複で失敗するが、
+  # 先の送信で保存できているので、保存できたときと同じ動きにする。
+  def save_responses
+    StressCheckResponse.save_answers!(
+      employee: current_employee,
+      stress_check_period: current_stress_check_period,
+      answers: stored_answers
+    )
+    clear_answers_and_redirect_to_home
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+    if current_employee.responded_to?(current_stress_check_period)
+      clear_answers_and_redirect_to_home
+    else
+      redirect_to examinees_section_path(@section.code), alert: SAVE_FAILED_MESSAGE
+    end
+  end
+
+  # 預かっていた回答を session から消して、振り分け係へ移動する（Issue #42）。
+  # 心身の情報を、必要以上に Cookie に残さないため。
+  def clear_answers_and_redirect_to_home
+    session.delete(:answers)
+    redirect_to examinees_home_path
   end
 end
