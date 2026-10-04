@@ -204,4 +204,42 @@ RSpec.describe Employee, type: :model do
       end
     end
   end
+
+  describe "#responded_to?" do
+    let(:employee) { create(:employee) }
+    let(:period) { create(:stress_check_period, company: employee.company, name: "2026年度前期") }
+
+    it "その実施回の回答が1件もなければ false を返すこと" do
+      expect(employee.responded_to?(period)).to be(false)
+    end
+
+    it "その実施回の回答が1件でもあれば true を返すこと" do
+      create(:stress_check_response, employee: employee, stress_check_period: period)
+
+      expect(employee.responded_to?(period)).to be(true)
+    end
+
+    it "別の実施回の回答しかなければ false を返すこと" do
+      other_period = create(:stress_check_period, company: employee.company, name: "2026年度後期")
+      create(:stress_check_response, employee: employee, stress_check_period: other_period)
+
+      expect(employee.responded_to?(period)).to be(false)
+    end
+
+    it "同じ会社の別の受検者の回答しかなければ false を返すこと" do
+      colleague = create(:employee, company: employee.company)
+      create(:stress_check_response, employee: colleague, stress_check_period: period)
+
+      expect(employee.responded_to?(period)).to be(false)
+    end
+
+    it "別の会社の、受検者番号が同じ受検者の回答しかなければ false を返すこと" do
+      other_employee = create(:employee, examinee_number: employee.examinee_number)
+      other_period = create(:stress_check_period, company: other_employee.company)
+      create(:stress_check_response, employee: other_employee, stress_check_period: other_period)
+
+      expect(other_employee.company).not_to eq(employee.company)
+      expect(employee.responded_to?(period)).to be(false)
+    end
+  end
 end

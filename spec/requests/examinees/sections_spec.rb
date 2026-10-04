@@ -49,6 +49,12 @@ RSpec.describe "Examinees::Sections", type: :request do
     end
   end
 
+  # 受検者を受検済みにする（指定した実施回の回答を1件作る）。
+  # 質問は before で作ったものを使う（ファクトリーに任せると、セクションと質問が余分に作られるため）。
+  def create_response_in(period)
+    create(:stress_check_response, employee: employee, stress_check_period: period, question: Question.first)
+  end
+
   describe "GET /examinees/sections/:code" do
     context "未ログインの場合" do
       it "ログイン画面にリダイレクトすること" do
@@ -120,6 +126,18 @@ RSpec.describe "Examinees::Sections", type: :request do
         expect(response.body).to include("未回答の質問があります。すべての質問に回答してください。")
       end
     end
+
+    context "ログイン済・受検期間内で、受検済みの場合（Issue #42）" do
+      before do
+        sign_in_employee
+        create_response_in(create_period_in_examination)
+      end
+
+      it "受検者トップ画面（振り分け係）にリダイレクトすること" do
+        get examinees_section_path("a")
+        expect(response).to redirect_to(examinees_home_path)
+      end
+    end
   end
 
   describe "PATCH /examinees/sections/:code" do
@@ -181,15 +199,69 @@ RSpec.describe "Examinees::Sections", type: :request do
         assert_select "input[type=radio][checked]", count: 0
       end
 
-      it "E-5d で全問に答えて「回答を送信する」を押すと、確認のメッセージとともに受検者トップ画面へ移動すること（Issue #41 時点の仮の動き）" do
+      it "E-5d で全問に答えて「回答を送信する」を押すと、回答が DB に保存され、受検者トップ画面に完了の表示が出ること" do
         answer_sections("a", "b", "c", "d")
         expect(response).to redirect_to(examinees_home_path)
 
-        follow_redirect!
-        expect(response).to redirect_to(examinees_section_path("a"))
+        period = employee.company.stress_check_periods.first
+        responses = StressCheckResponse.where(employee: employee, stress_check_period: period)
+        expect(responses.count).to eq(Question.count)
+        expect(responses.pluck(:raw_answer).uniq).to eq([ 1 ])
 
         follow_redirect!
-        expect(response.body).to include("全57問の回答を確認しました。（回答の保存は Issue #42 で実装予定）")
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("受検が完了しました")
+      end
+
+      it "回答を保存した後は、session に回答が残っていないこと" do
+        answer_sections("a", "b", "c")
+        expect(session[:answers]).to be_present
+
+        answer_sections("d")
+        expect(session[:answers]).to be_nil
+      end
+
+      it "保存に失敗し、受検済みになっていない場合は、E-5d に戻ってエラーを表示し、回答は session に残っていること" do
+        allow(StressCheckResponse).to receive(:save_answers!).and_raise(ActiveRecord::RecordInvalid)
+
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_section_path("d"))
+        expect(StressCheckResponse.count).to eq(0)
+        expect(session[:answers]).to be_present
+
+        follow_redirect!
+        expect(response.body).to include("回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。")
+      end
+
+      # 「回答を送信する」を2回押したときの、後の送信を再現する。
+      # 保存の途中で、先の送信が保存を終え、後の送信は重複で失敗した、という状況。
+      it "保存が重複で失敗したが、受検済みになっている場合は、エラーを出さずに完了の表示になること" do
+        period = employee.company.stress_check_periods.first
+        allow(StressCheckResponse).to receive(:save_answers!) do
+          create_response_in(period)
+          raise ActiveRecord::RecordNotUnique, "duplicate key"
+        end
+
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_home_path)
+        expect(session[:answers]).to be_nil
+
+        follow_redirect!
+        expect(response.body).to include("受検が完了しました")
+        expect(response.body).not_to include("回答を保存できませんでした。")
+      end
+    end
+
+    context "ログイン済・受検期間内で、受検済みの場合（Issue #42）" do
+      before do
+        sign_in_employee
+        create_response_in(create_period_in_examination)
+      end
+
+      it "回答を送信しても受検者トップ画面（振り分け係）にリダイレクトし、回答の件数が増えないこと" do
+        patch examinees_section_path("d"), params: { answers: all_answers_params("d"), move: "next" }
+        expect(response).to redirect_to(examinees_home_path)
+        expect(StressCheckResponse.count).to eq(1)
       end
     end
   end
