@@ -48,4 +48,11 @@ class Employee < ApplicationRecord
   def password_change_required?
     password_changed_at.nil?
   end
+
+  # この実施回の回答が保存済み（＝受検済み）かどうか（Issue #42）。
+  # 回答は「全部か0件か」で保存するため、1件でもあれば受検済みとみなす。
+  # 全問そろっているかの確認は、判定処理（Issue #44）で行う。
+  def responded_to?(stress_check_period)
+    stress_check_responses.exists?(stress_check_period: stress_check_period)
+  end
 end
