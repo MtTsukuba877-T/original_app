@@ -55,4 +55,17 @@ class Employee < ApplicationRecord
   def responded_to?(stress_check_period)
     stress_check_responses.exists?(stress_check_period: stress_check_period)
   end
+
+  # 「回答を送信する」を押したときの処理（Issue #44）。
+  # 預かっていた回答の保存と、セクション別スコアの計算・保存を、1つのトランザクションで行う。
+  # どこかで例外が発生すると、回答もスコアもすべて取り消される（全部か0件か）。
+  # Issue #45 で、高ストレスの判定をここに加える。
+  #
+  # answers の形は StressCheckResponse.save_answers! と同じ。
+  def submit_answers!(stress_check_period:, answers:)
+    transaction do
+      StressCheckResponse.save_answers!(employee: self, stress_check_period: stress_check_period, answers: answers)
+      Judgment.create_section_scores!(employee: self, stress_check_period: stress_check_period)
+    end
+  end
 end

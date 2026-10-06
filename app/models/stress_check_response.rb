@@ -25,4 +25,16 @@ class StressCheckResponse < ApplicationRecord
       end
     end
   end
+
+  # この回答の点数（1〜4）を返す（Issue #44）。
+  # 点数は、ストレスが高いほうを4点、低いほうを1点とする
+  # （厚生労働省の実施マニュアルの「合計点数を使う方法」）。
+  # 逆転項目（questions.reversed が true）は、回答の番号を 1→4、2→3、3→2、4→1 に置き換える。
+  def score
+    if question.reversed?
+      5 - raw_answer
+    else
+      raw_answer
+    end
+  end
 end
