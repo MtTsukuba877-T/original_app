@@ -221,6 +221,20 @@ RSpec.describe "Examinees::Sections", type: :request do
         expect(session[:answers]).to be_nil
       end
 
+      # 全問に1番で回答する。A は1問目を逆転項目にするので、4点 ＋ 1点で5点。B〜D は 1点 × 2問で2点。
+      it "「回答を送信する」を押すと、セクション別スコアが judgments に保存されること（Issue #44）" do
+        questions_of("a").first.update!(reversed: true)
+
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_home_path)
+
+        period = employee.company.stress_check_periods.first
+        judgments = Judgment.where(employee: employee, stress_check_period: period)
+        expect(judgments.count).to eq(Section.count)
+        scores = judgments.joins(:section).order("sections.display_order").pluck("sections.code", :section_score)
+        expect(scores).to eq([ [ "a", 5 ], [ "b", 2 ], [ "c", 2 ], [ "d", 2 ] ])
+      end
+
       it "保存に失敗し、受検済みになっていない場合は、E-5d に戻ってエラーを表示し、回答は session に残っていること" do
         allow(StressCheckResponse).to receive(:save_answers!).and_raise(ActiveRecord::RecordInvalid)
 
@@ -233,11 +247,39 @@ RSpec.describe "Examinees::Sections", type: :request do
         expect(response.body).to include("回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。")
       end
 
+      # 回答の保存は成功し、その後の判定で失敗する状況（ブラウザでは、実施回の判定方法を変えて確かめた）。
+      it "判定方法が合計点数を使う方法でない実施回では、E-5d に戻ってエラーを表示し、回答も判定も保存されず、回答は session に残っていること（Issue #44）" do
+        employee.company.stress_check_periods.first.update!(judgment_method: :raw_score_conversion)
+
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_section_path("d"))
+        expect(StressCheckResponse.count).to eq(0)
+        expect(Judgment.count).to eq(0)
+        expect(session[:answers]).to be_present
+
+        follow_redirect!
+        expect(response.body).to include("回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。")
+      end
+
+      it "判定で回答がそろっていないと判断された場合も、E-5d に戻ってエラーを表示し、回答も判定も保存されないこと（Issue #44）" do
+        allow(Judgment).to receive(:create_section_scores!).and_raise(Judgment::IncompleteResponsesError)
+
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_section_path("d"))
+        expect(StressCheckResponse.count).to eq(0)
+        expect(Judgment.count).to eq(0)
+
+        follow_redirect!
+        expect(response.body).to include("回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。")
+      end
+
       # 「回答を送信する」を2回押したときの、後の送信を再現する。
       # 保存の途中で、先の送信が保存を終え、後の送信は重複で失敗した、という状況。
+      # 先の送信の回答は、後の送信のトランザクションの外で確定している。
+      # そのため、保存と判定をまとめる Employee#submit_answers! そのものを差し替えて再現する（Issue #44）。
       it "保存が重複で失敗したが、受検済みになっている場合は、エラーを出さずに完了の表示になること" do
         period = employee.company.stress_check_periods.first
-        allow(StressCheckResponse).to receive(:save_answers!) do
+        allow_any_instance_of(Employee).to receive(:submit_answers!) do
           create_response_in(period)
           raise ActiveRecord::RecordNotUnique, "duplicate key"
         end

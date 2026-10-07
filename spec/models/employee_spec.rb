@@ -242,4 +242,32 @@ RSpec.describe Employee, type: :model do
       expect(employee.responded_to?(period)).to be(false)
     end
   end
+
+  describe "#submit_answers!" do
+    let(:employee) { create(:employee) }
+    let(:period) { create(:stress_check_period, company: employee.company) }
+    let(:section) { create(:section) }
+    let!(:reversed_question) { create(:question, section: section, reversed: true) }
+    let!(:normal_question) { create(:question, section: section) }
+    # 逆転項目に1（→4点）、それ以外に3（→3点）で、セクションの合計は7点
+    let(:answers) { { reversed_question.id.to_s => 1, normal_question.id.to_s => 3 } }
+
+    it "回答と、セクション別スコアの両方が保存されること" do
+      employee.submit_answers!(stress_check_period: period, answers: answers)
+
+      expect(StressCheckResponse.where(employee: employee, stress_check_period: period).count).to eq(2)
+      expect(Judgment.find_by(employee: employee, stress_check_period: period, section: section).section_score).to eq(7)
+    end
+
+    # 回答の保存は成功し、その後の判定で失敗する状況を作る。
+    it "判定で失敗すると、先に保存した回答も取り消されること（全部か0件か）" do
+      period.update!(judgment_method: :raw_score_conversion)
+
+      expect {
+        employee.submit_answers!(stress_check_period: period, answers: answers)
+      }.to raise_error(Judgment::UnsupportedJudgmentMethodError)
+      expect(StressCheckResponse.count).to eq(0)
+      expect(Judgment.count).to eq(0)
+    end
+  end
 end

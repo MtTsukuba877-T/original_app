@@ -170,4 +170,27 @@ RSpec.describe StressCheckResponse, type: :model do
       expect(StressCheckResponse.count).to eq(2)
     end
   end
+
+  describe "#score" do
+    it "逆転項目でない質問は、回答の番号がそのまま点数になること" do
+      question = create(:question, reversed: false)
+
+      expect(build(:stress_check_response, question: question, raw_answer: 1).score).to eq(1)
+      expect(build(:stress_check_response, question: question, raw_answer: 4).score).to eq(4)
+    end
+
+    it "逆転項目は、1→4、2→3、3→2、4→1 に置き換えた点数になること" do
+      question = create(:question, reversed: true)
+
+      scores = (1..4).map { |raw_answer| build(:stress_check_response, question: question, raw_answer: raw_answer).score }
+      expect(scores).to eq([ 4, 3, 2, 1 ])
+    end
+
+    it "score を呼んでも、保存されている回答（raw_answer）は変わらないこと" do
+      response = create(:stress_check_response, question: create(:question, reversed: true), raw_answer: 1)
+
+      expect(response.score).to eq(4)
+      expect(response.reload.raw_answer).to eq(1)
+    end
+  end
 end
