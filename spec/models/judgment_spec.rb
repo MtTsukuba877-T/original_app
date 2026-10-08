@@ -104,4 +104,119 @@ RSpec.describe Judgment, type: :model do
       end
     end
   end
+
+  describe ".create_section_scores!" do
+    let(:employee) { create(:employee) }
+    let(:period) { create(:stress_check_period, company: employee.company) }
+    let(:section_a) { create(:section) }
+    let(:section_b) { create(:section) }
+    # 各セクションに、逆転項目1問と、それ以外1問を用意する。
+    let!(:a_reversed) { create(:question, section: section_a, reversed: true) }
+    let!(:a_normal) { create(:question, section: section_a) }
+    let!(:b_reversed) { create(:question, section: section_b, reversed: true) }
+    let!(:b_normal) { create(:question, section: section_b) }
+
+    # 受検者の、この実施回の回答を1件作る
+    def create_response(question, raw_answer)
+      create(:stress_check_response,
+             employee: employee, stress_check_period: period, question: question, raw_answer: raw_answer)
+    end
+
+    # 全4問に回答する。
+    # A: 逆転項目に1（→4点）、それ以外に2（→2点）で、合計6点
+    # B: 逆転項目に4（→1点）、それ以外に3（→3点）で、合計4点
+    def create_all_responses
+      create_response(a_reversed, 1)
+      create_response(a_normal, 2)
+      create_response(b_reversed, 4)
+      create_response(b_normal, 3)
+    end
+
+    # 保存されたセクション別スコア
+    def score_of(section)
+      Judgment.find_by(employee: employee, stress_check_period: period, section: section).section_score
+    end
+
+    it "セクションごとに1件ずつ保存され、逆転項目を置き換えた合計がスコアになること" do
+      create_all_responses
+
+      Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+
+      expect(Judgment.count).to eq(2)
+      expect(score_of(section_a)).to eq(6)
+      expect(score_of(section_b)).to eq(4)
+    end
+
+    it "回答が1問欠けていると IncompleteResponsesError が発生し、1件も保存されないこと" do
+      create_response(a_reversed, 1)
+      create_response(a_normal, 2)
+      create_response(b_reversed, 4)
+
+      expect {
+        Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+      }.to raise_error(Judgment::IncompleteResponsesError)
+      expect(Judgment.count).to eq(0)
+    end
+
+    it "判定方法が合計点数を使う方法（simple_sum）でない実施回では UnsupportedJudgmentMethodError が発生し、1件も保存されないこと" do
+      create_all_responses
+      period.update!(judgment_method: :raw_score_conversion)
+
+      expect {
+        Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+      }.to raise_error(Judgment::UnsupportedJudgmentMethodError)
+      expect(Judgment.count).to eq(0)
+    end
+
+    it "判定済みの状態でもう一度呼ぶと ActiveRecord::RecordInvalid が発生し、件数が増えないこと" do
+      create_all_responses
+      Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+
+      expect {
+        Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(Judgment.count).to eq(2)
+    end
+
+    # 80問版の質問を A に2問足す。
+    # 1問には回答がある（合計に含めると 6 → 10 になる）。もう1問には回答がない（確認の対象なら「欠けている」になる）。
+    it "80問版の質問は、そろっているかの確認にも、合計にも含めないこと" do
+      create_all_responses
+      answered_extended_question = create(:question, section: section_a, question_type: :extended_80)
+      create(:question, section: section_a, question_type: :extended_80)
+      create_response(answered_extended_question, 4)
+
+      Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+
+      expect(Judgment.count).to eq(2)
+      expect(score_of(section_a)).to eq(6)
+    end
+
+    it "ほかの受検者の回答や、ほかの実施回の回答は、合計に含めないこと" do
+      create_all_responses
+      colleague = create(:employee, company: employee.company)
+      other_period = create(:stress_check_period, company: employee.company)
+      create(:stress_check_response, employee: colleague, stress_check_period: period, question: a_normal, raw_answer: 4)
+      create(:stress_check_response, employee: employee, stress_check_period: other_period, question: a_normal, raw_answer: 4)
+
+      Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+
+      expect(Judgment.count).to eq(2)
+      expect(score_of(section_a)).to eq(6)
+    end
+
+    # 回答は作った順に読み込まれ、A → B の順に保存される前提。
+    # B の判定を先に作っておき、B の保存を重複で失敗させる。
+    # 先に保存できた A の分も取り消されることを確かめる。
+    it "途中のセクションで保存に失敗すると、先に保存したセクションの分も取り消されること" do
+      create_all_responses
+      create(:judgment, employee: employee, stress_check_period: period, section: section_b)
+
+      expect {
+        Judgment.create_section_scores!(employee: employee, stress_check_period: period)
+      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(Judgment.count).to eq(1)
+      expect(Judgment.exists?(section: section_a)).to be(false)
+    end
+  end
 end

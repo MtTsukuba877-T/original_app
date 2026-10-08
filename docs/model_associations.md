@@ -437,6 +437,9 @@ end
 - 1受検につき4レコード（A/B/C/D）
 - 判定方法（`judgment_method`）は`stress_check_periods`テーブルから取得
 - セクションごとの上限バリデーション（例：Aは17問×4=68点）は本リリース版で追加検討
+- `section_score`の計算（Issue #44）：`Judgment.create_section_scores!`が、保存済みの回答をセクションごとに合計する。1問の点数は`StressCheckResponse#score`で、ストレスが高いほうを4点とし、逆転項目は「5 − 回答の番号」に置き換える（厚生労働省の実施マニュアルの「合計点数を使う方法」）。1問ごとの点数は保存せず、`raw_answer`は書き換えない
+- 計算の前に、57問版の全質問の回答がそろっていることと、実施回の判定方法が`simple_sum`であることを確かめる。満たさない場合は例外を出し、判定しない（Issue #44）
+- 回答の保存と判定は、`Employee#submit_answers!`が1つのトランザクションで行う（Issue #44）
 
 ---
 
