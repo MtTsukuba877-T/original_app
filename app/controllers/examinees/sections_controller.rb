@@ -1,9 +1,10 @@
-# 受検画面（E-5a〜E-5d）（Issue #41、#42、#44）
+# 受検画面（E-5a〜E-5d）（Issue #41、#42、#44、#45）
 #
 # 57問をセクション（A〜D）ごとに1画面ずつ表示する。URL の :code はセクションのコード（a〜d）。
 # 回答は「次へ」「戻る」を押すたびに session[:answers] に一時的に預け、
 # 「回答を送信する」で DB（stress_check_responses）にまとめて保存し（Issue #42）、
-# あわせてセクション別スコアを計算して judgments に保存する（Issue #44）。
+# あわせてセクション別スコアを計算して judgments に保存し（Issue #44）、
+# 高ストレスかどうかを判定して results に保存する（Issue #45）。
 # MVP では途中保存を行わないため、ログアウトやタイムアウトで session が消えると回答も消える。
 # 受検は1回限りのため、受検済みの受検者がこの画面を開いたときは、振り分け係（受検者トップ画面）へ戻す。
 #
@@ -120,8 +121,8 @@ class Examinees::SectionsController < Examinees::BaseController
     end
   end
 
-  # 預かっている回答を DB に保存し、セクション別スコアを計算・保存して、振り分け係へ移動する（Issue #42、#44）。
-  # 保存と計算は Employee#submit_answers! がまとめて行う（全部か0件か）。
+  # 預かっている回答を DB に保存し、セクション別スコアと高ストレスの判定結果を保存して、振り分け係へ移動する（Issue #42、#44、#45）。
+  # 保存・計算・判定は Employee#submit_answers! がまとめて行う（全部か0件か）。
   # 失敗しても Rails のエラー画面は出さない。
   # 「回答を送信する」を2回押した場合、後の送信は重複で失敗するが、
   # 先の送信で保存できているので、保存できたときと同じ動きにする。
@@ -132,7 +133,8 @@ class Examinees::SectionsController < Examinees::BaseController
     )
     clear_answers_and_redirect_to_home
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique,
-         Judgment::IncompleteResponsesError, Judgment::UnsupportedJudgmentMethodError
+         Judgment::IncompleteResponsesError, Judgment::UnsupportedJudgmentMethodError,
+         Result::IncompleteSectionScoresError
     if current_employee.responded_to?(current_stress_check_period)
       clear_answers_and_redirect_to_home
     else
