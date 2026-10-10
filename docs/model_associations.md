@@ -439,7 +439,7 @@ end
 - セクションごとの上限バリデーション（例：Aは17問×4=68点）は本リリース版で追加検討
 - `section_score`の計算（Issue #44）：`Judgment.create_section_scores!`が、保存済みの回答をセクションごとに合計する。1問の点数は`StressCheckResponse#score`で、ストレスが高いほうを4点とし、逆転項目は「5 − 回答の番号」に置き換える（厚生労働省の実施マニュアルの「合計点数を使う方法」）。1問ごとの点数は保存せず、`raw_answer`は書き換えない
 - 計算の前に、57問版の全質問の回答がそろっていることと、実施回の判定方法が`simple_sum`であることを確かめる。満たさない場合は例外を出し、判定しない（Issue #44）
-- 回答の保存と判定は、`Employee#submit_answers!`が1つのトランザクションで行う（Issue #44）
+- 回答の保存、セクション別スコアの保存、高ストレスの判定結果（`results`）の保存は、`Employee#submit_answers!`が1つのトランザクションで行う（Issue #44、#45）
 
 ---
 
@@ -450,10 +450,7 @@ class Result < ApplicationRecord
   belongs_to :employee
   belongs_to :stress_check_period
   
-  enum stress_level: {
-    high_stress: 0,
-    not_high_stress: 1
-  }
+  enum :stress_level, { high_stress: 0, low_to_moderate_stress: 1 }
   
   validates :stress_level, presence: true
   validates :employee_id, uniqueness: { scope: :stress_check_period_id }
@@ -477,6 +474,10 @@ end
 - 1受検につき1レコード
 - 判定日時は `created_at`（Rails自動生成）で代替
 - 判定方法は対応する`judgments`レコードの`stress_check_periods.judgment_method`から取得
+- `stress_level`の判定と保存（Issue #45）：`Result.create_from_section_scores!`が、保存済みのセクション別スコア（`judgments`）から A・B・C の合計点を読み、`Result.stress_level_for`に渡す。返ってきた結果を、`results`に1件保存する
+- `Result.stress_level_for`が、受け取った合計点を基準と比べて、`high_stress`または`low_to_moderate_stress`を返す（保存はしない）。基準は、厚生労働省の実施マニュアルの「合計点数を使う方法」（評価基準の例（その1））で、㋐ B の合計が77点以上、または ㋑ A と C の合算が76点以上かつ B の合計が63点以上のときに`high_stress`、それ以外は`low_to_moderate_stress`とする。D（満足度）は使わない。基準の数値は`Result`の定数にまとめている
+- `Result.create_from_section_scores!`は、判定の前に、A・B・C のスコアがそろっていることと、実施回の判定方法が`simple_sum`であることを確かめ、満たさない場合は例外を出して保存しない（Issue #45）
+- 回答・セクション別スコア・判定結果の保存は、`Employee#submit_answers!`が1つのトランザクションで行う（Issue #44、#45）
 
 ---
 

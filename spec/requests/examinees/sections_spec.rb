@@ -235,6 +235,17 @@ RSpec.describe "Examinees::Sections", type: :request do
         expect(scores).to eq([ [ "a", 5 ], [ "b", 2 ], [ "c", 2 ], [ "d", 2 ] ])
       end
 
+      # 全問に1番で回答する。各セクション2問なので、B は2点で、基準に届かない（高ストレスではない）。
+      it "「回答を送信する」を押すと、高ストレスの判定結果が results に1件保存されること（Issue #45）" do
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_home_path)
+
+        period = employee.company.stress_check_periods.first
+        results = Result.where(employee: employee, stress_check_period: period)
+        expect(results.count).to eq(1)
+        expect(results.first.stress_level).to eq("low_to_moderate_stress")
+      end
+
       it "保存に失敗し、受検済みになっていない場合は、E-5d に戻ってエラーを表示し、回答は session に残っていること" do
         allow(StressCheckResponse).to receive(:save_answers!).and_raise(ActiveRecord::RecordInvalid)
 
@@ -268,6 +279,20 @@ RSpec.describe "Examinees::Sections", type: :request do
         expect(response).to redirect_to(examinees_section_path("d"))
         expect(StressCheckResponse.count).to eq(0)
         expect(Judgment.count).to eq(0)
+
+        follow_redirect!
+        expect(response.body).to include("回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。")
+      end
+
+      it "判定でスコアがそろっていないと判断された場合も、E-5d に戻ってエラーを表示し、回答もスコアも判定結果も保存されないこと（Issue #45）" do
+        allow(Result).to receive(:create_from_section_scores!).and_raise(Result::IncompleteSectionScoresError)
+
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_section_path("d"))
+        expect(StressCheckResponse.count).to eq(0)
+        expect(Judgment.count).to eq(0)
+        expect(Result.count).to eq(0)
+        expect(session[:answers]).to be_present
 
         follow_redirect!
         expect(response.body).to include("回答を保存できませんでした。お手数ですが、もう一度「回答を送信する」を押してください。")
