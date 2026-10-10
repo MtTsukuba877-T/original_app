@@ -246,21 +246,35 @@ RSpec.describe Employee, type: :model do
   describe "#submit_answers!" do
     let(:employee) { create(:employee) }
     let(:period) { create(:stress_check_period, company: employee.company) }
-    let(:section) { create(:section) }
-    let!(:reversed_question) { create(:question, section: section, reversed: true) }
-    let!(:normal_question) { create(:question, section: section) }
-    # 逆転項目に1（→4点）、それ以外に3（→3点）で、セクションの合計は7点
-    let(:answers) { { reversed_question.id.to_s => 1, normal_question.id.to_s => 3 } }
-
-    it "回答と、セクション別スコアの両方が保存されること" do
-      employee.submit_answers!(stress_check_period: period, answers: answers)
-
-      expect(StressCheckResponse.where(employee: employee, stress_check_period: period).count).to eq(2)
-      expect(Judgment.find_by(employee: employee, stress_check_period: period, section: section).section_score).to eq(7)
+    # 高ストレスの判定には A・B・C のスコアが必要なので、セクションを3つ作る（Issue #45）
+    let(:section_a) { create(:section, code: "a") }
+    let(:section_b) { create(:section, code: "b") }
+    let(:section_c) { create(:section, code: "c") }
+    let!(:reversed_question) { create(:question, section: section_a, reversed: true) }
+    let!(:normal_question) { create(:question, section: section_a) }
+    let!(:question_b) { create(:question, section: section_b) }
+    let!(:question_c) { create(:question, section: section_c) }
+    # A: 逆転項目に1（→4点）、それ以外に3（→3点）で、合計7点。B: 2点。C: 2点。
+    # B が 77点にも 63点にも届かないので、判定は low_to_moderate_stress（高ストレスではない）になる。
+    let(:answers) do
+      {
+        reversed_question.id.to_s => 1,
+        normal_question.id.to_s => 3,
+        question_b.id.to_s => 2,
+        question_c.id.to_s => 2
+      }
     end
 
-    # 回答の保存は成功し、その後の判定で失敗する状況を作る。
-    it "判定で失敗すると、先に保存した回答も取り消されること（全部か0件か）" do
+    it "回答と、セクション別スコアと、高ストレスの判定結果がすべて保存されること" do
+      employee.submit_answers!(stress_check_period: period, answers: answers)
+
+      expect(StressCheckResponse.where(employee: employee, stress_check_period: period).count).to eq(4)
+      expect(Judgment.find_by(employee: employee, stress_check_period: period, section: section_a).section_score).to eq(7)
+      expect(Result.find_by(employee: employee, stress_check_period: period).stress_level).to eq("low_to_moderate_stress")
+    end
+
+    # 回答の保存は成功し、その後のセクション別スコアの計算で失敗する状況を作る。
+    it "セクション別スコアの計算で失敗すると、先に保存した回答も取り消されること（全部か0件か）" do
       period.update!(judgment_method: :raw_score_conversion)
 
       expect {
@@ -268,6 +282,20 @@ RSpec.describe Employee, type: :model do
       }.to raise_error(Judgment::UnsupportedJudgmentMethodError)
       expect(StressCheckResponse.count).to eq(0)
       expect(Judgment.count).to eq(0)
+      expect(Result.count).to eq(0)
+    end
+
+    # 回答とセクション別スコアの保存は成功し、その後の判定結果の保存で失敗する状況を作る（Issue #45）。
+    # 判定結果を先に1件作っておくと、判定結果の保存が重複で失敗する。
+    it "判定結果の保存で失敗すると、先に保存した回答とセクション別スコアも取り消されること（全部か0件か）" do
+      create(:result, employee: employee, stress_check_period: period)
+
+      expect {
+        employee.submit_answers!(stress_check_period: period, answers: answers)
+      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(StressCheckResponse.count).to eq(0)
+      expect(Judgment.count).to eq(0)
+      expect(Result.count).to eq(1)
     end
   end
 end
