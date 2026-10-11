@@ -246,6 +246,18 @@ RSpec.describe "Examinees::Sections", type: :request do
         expect(results.first.stress_level).to eq("low_to_moderate_stress")
       end
 
+      # 全問に1番で回答する。各セクション2問なので、判定結果は「高ストレスではない」になる。
+      it "「回答を送信する」を押すと、移動した先の受検者トップ画面に判定結果が表示されること（Issue #46）" do
+        answer_sections("a", "b", "c", "d")
+        expect(response).to redirect_to(examinees_home_path)
+
+        follow_redirect!
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("判定結果：")
+        expect(response.body).to include("【高ストレスではない】")
+        expect(response.body).not_to include("【高ストレス】")
+      end
+
       it "保存に失敗し、受検済みになっていない場合は、E-5d に戻ってエラーを表示し、回答は session に残っていること" do
         allow(StressCheckResponse).to receive(:save_answers!).and_raise(ActiveRecord::RecordInvalid)
 
@@ -302,10 +314,12 @@ RSpec.describe "Examinees::Sections", type: :request do
       # 保存の途中で、先の送信が保存を終え、後の送信は重複で失敗した、という状況。
       # 先の送信の回答は、後の送信のトランザクションの外で確定している。
       # そのため、保存と判定をまとめる Employee#submit_answers! そのものを差し替えて再現する（Issue #44）。
+      # 先の送信では判定結果まで保存されているので、判定結果も作る（Issue #46）。
       it "保存が重複で失敗したが、受検済みになっている場合は、エラーを出さずに完了の表示になること" do
         period = employee.company.stress_check_periods.first
         allow_any_instance_of(Employee).to receive(:submit_answers!) do
           create_response_in(period)
+          create(:result, employee: employee, stress_check_period: period)
           raise ActiveRecord::RecordNotUnique, "duplicate key"
         end
 
