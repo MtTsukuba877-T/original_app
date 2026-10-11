@@ -1,29 +1,72 @@
 <% content_for(:title, "受検完了 | ストレスチェック") %>
 <% content_for(:header_right, render("examinees/shared/logout_button")) %>
 
-<%# 受検済みの受検者に表示する仮の画面（Issue #42）。 %>
-<%# 結果表示画面（E-6・E-6'）の画面イメージのうち、判定結果以外の部分を先に作ったもの。 %>
-<%# 画面イメージにはない企業名・氏名と、ログアウトの案内を加えている。 %>
-<div class="pt-8 text-center">
-  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
-    <svg class="h-9 w-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M5 13l4 4L19 7" />
-    </svg>
-  </div>
+<%# 結果表示画面 E-6（高ストレスではない）・E-6'（高ストレス）（Issue #42、#46）。 %>
+<%# 受検期間内で、受検済みの受検者に表示する。 %>
+<%# スマホの1画面に収めるため、画面イメージ（Figma）から配置と文言を変えている。 %>
+<%# 画面イメージにはない企業名・氏名、受検期間の最終日の案内、ログアウトの案内、 %>
+<%# 共用の機器の案内、画面下のログアウトボタンを加えている。 %>
+<div class="text-sm text-gray-900">
+  <p><%= current_employee.company.name %></p>
+  <p><%= current_employee.name %>さん</p>
+</div>
 
-  <h2 class="mt-8 text-lg font-bold text-gray-900">受検が完了しました</h2>
+<div class="mt-3 text-center">
+  <h2 class="flex items-center justify-center gap-2 text-lg font-bold text-gray-900">
+    受検が完了しました
+    <span class="flex h-6 w-6 items-center justify-center rounded-full bg-green-500">
+      <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 13l4 4L19 7" />
+      </svg>
+    </span>
+  </h2>
 
-  <div class="mt-6 text-gray-900">
-    <p><%= current_employee.company.name %></p>
-    <p><%= current_employee.name %>さん</p>
-  </div>
+  <p class="mt-3 text-sm text-gray-900">ご協力ありがとうございました。</p>
 
-  <p class="mt-6 text-sm text-gray-900">ご協力ありがとうございました。</p>
+  <%# 判定結果がない場合（通常は起きない）は、判定結果の枠と、受検期間の最終日の案内を出さない。 %>
+  <% if @result %>
+    <% if @result.high_stress? %>
+      <div class="mt-3 flex items-baseline justify-center border border-red-300 bg-red-100 px-4 py-3 text-gray-900">
+        <span class="text-sm">判定結果：</span>
+        <span class="text-xl font-bold text-red-600">【高ストレス】</span>
+      </div>
+    <% else %>
+      <div class="mt-3 flex items-baseline justify-center border border-sky-200 bg-sky-50 px-4 py-3 text-gray-900">
+        <span class="text-sm">判定結果：</span>
+        <span class="text-xl font-bold text-green-600">【高ストレスではない】</span>
+      </div>
+    <% end %>
 
-  <%# Issue #46 で、ここに「以下があなたの判定結果です。」と判定結果の枠を加える。 %>
+    <p class="mt-3 text-sm text-gray-900">
+      判定結果を表示できるのは、<br>
+      受検期間の最終日（<%= @stress_check_period.end_date.strftime("%Y年%-m月%-d日") %>）までです。<br>
+      この画面を保存または印刷することをお勧めします。
+    </p>
+  <% end %>
 
-  <p class="mt-8 text-sm text-gray-500">
-    画面右上の「ログアウト」ボタンから、<br>
+  <p class="mt-5 text-xs text-gray-600">
+    判定結果をほかの方に見られないよう<br>
+    確認が終わったら<br>
+    ブラウザやスマホの「×」ではなく<br>
+    画面右上または画面下の「ログアウト」ボタンから<br>
     ログアウトしてください。
   </p>
+
+  <div class="mt-5 text-xs text-gray-600">
+    <p>《共用のPC・スマートフォン・タブレットをお使いの方へ》</p>
+    <p>
+      この画面を保存した場合は<br>
+      この機器に保存したファイルを残さず<br>
+      ほかの方に見られないところへ<br>
+      移動・転送するようにしてください。
+    </p>
+  </div>
+
+  <%# 画面下のログアウトボタン。ヘッダーのログアウトボタンと同じ動き（確認なし）。 %>
+  <div class="mt-4 flex justify-center">
+    <%= button_to "ログアウト",
+          examinees_sign_out_path,
+          method: :delete,
+          class: "px-10 py-3 rounded-lg bg-employee-navy text-white text-base font-bold hover:opacity-90 transition-opacity cursor-pointer" %>
+  </div>
 </div>
