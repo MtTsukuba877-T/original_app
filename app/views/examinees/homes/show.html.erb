@@ -1,11 +1,15 @@
 <% content_for(:title, "受検期間外 | ストレスチェック") %>
 <% content_for(:header_right, render("examinees/shared/logout_button")) %>
 
-<%# 受検期間外の受検者だけに表示する画面（Issue #41）。受検期間内の受検者は受検画面（E-5a）へ移動する。 %>
+<%# 受検期間外の受検者だけに表示する画面（Issue #41、#46）。受検期間内の受検者は、受検画面（E-5a）か結果表示画面へ移動する。 %>
 <div class="text-center space-y-4">
-  <p class="text-gray-900"><%= current_employee.name %>さん</p>
+  <div class="text-gray-900">
+    <p><%= current_employee.company.name %></p>
+    <p><%= current_employee.name %>さん</p>
+  </div>
   <p class="text-sm text-gray-500">
     現在は受検期間外のため、受検できません。<br>
-    受検期間については、会社のご担当者にお問い合わせください。
+    受検期間については<br>
+    会社のご担当者にお問い合わせください。
   </p>
 </div>

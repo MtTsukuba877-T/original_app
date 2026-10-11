@@ -2,7 +2,7 @@
 <% content_for(:header_right, render("examinees/shared/logout_button")) %>
 
 <%# 結果表示画面 E-6（高ストレスではない）・E-6'（高ストレス）（Issue #42、#46）。 %>
-<%# 受検期間内で、受検済みの受検者に表示する。 %>
+<%# 受検期間内で、受検済みで、判定結果がある受検者に表示する。 %>
 <%# スマホの1画面に収めるため、画面イメージ（Figma）から配置と文言を変えている。 %>
 <%# 画面イメージにはない企業名・氏名、受検期間の最終日の案内、ログアウトの案内、 %>
 <%# 共用の機器の案内、画面下のログアウトボタンを加えている。 %>
@@ -23,26 +23,23 @@
 
   <p class="mt-3 text-sm text-gray-900">ご協力ありがとうございました。</p>
 
-  <%# 判定結果がない場合（通常は起きない）は、判定結果の枠と、受検期間の最終日の案内を出さない。 %>
-  <% if @result %>
-    <% if @result.high_stress? %>
-      <div class="mt-3 flex items-baseline justify-center border border-red-300 bg-red-100 px-4 py-3 text-gray-900">
-        <span class="text-sm">判定結果：</span>
-        <span class="text-xl font-bold text-red-600">【高ストレス】</span>
-      </div>
-    <% else %>
-      <div class="mt-3 flex items-baseline justify-center border border-sky-200 bg-sky-50 px-4 py-3 text-gray-900">
-        <span class="text-sm">判定結果：</span>
-        <span class="text-xl font-bold text-green-600">【高ストレスではない】</span>
-      </div>
-    <% end %>
-
-    <p class="mt-3 text-sm text-gray-900">
-      判定結果を表示できるのは、<br>
-      受検期間の最終日（<%= @stress_check_period.end_date.strftime("%Y年%-m月%-d日") %>）までです。<br>
-      この画面を保存または印刷することをお勧めします。
-    </p>
+  <% if @result.high_stress? %>
+    <div class="mt-3 flex items-baseline justify-center border border-red-300 bg-red-100 px-4 py-3 text-gray-900">
+      <span class="text-sm">判定結果：</span>
+      <span class="text-xl font-bold text-red-600">【高ストレス】</span>
+    </div>
+  <% else %>
+    <div class="mt-3 flex items-baseline justify-center border border-sky-200 bg-sky-50 px-4 py-3 text-gray-900">
+      <span class="text-sm">判定結果：</span>
+      <span class="text-xl font-bold text-green-600">【高ストレスではない】</span>
+    </div>
   <% end %>
+
+  <p class="mt-3 text-sm text-gray-900">
+    判定結果を表示できるのは、<br>
+    受検期間の最終日（<%= @stress_check_period.end_date.strftime("%Y年%-m月%-d日") %>）までです。<br>
+    この画面を保存または印刷することをお勧めします。
+  </p>
 
   <p class="mt-5 text-xs text-gray-600">
     判定結果をほかの方に見られないよう<br>

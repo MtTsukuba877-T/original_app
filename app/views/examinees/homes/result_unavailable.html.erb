@@ -1,0 +1,17 @@
+<% content_for(:title, "判定結果 | ストレスチェック") %>
+<% content_for(:header_right, render("examinees/shared/logout_button")) %>
+
+<%# 受検期間内で、回答はあるが判定結果がない受検者に表示する画面（Issue #46）。 %>
+<%# 回答・セクション別スコア・判定結果はまとめて保存するので、通常は起きない。 %>
+<%# 起きた場合に Rails のエラー画面を出さず、問い合わせ先を案内する。 %>
+<div class="text-center space-y-4">
+  <div class="text-gray-900">
+    <p><%= current_employee.company.name %></p>
+    <p><%= current_employee.name %>さん</p>
+  </div>
+  <p class="text-sm text-gray-500">
+    判定結果を表示できません。<br>
+    お手数ですが<br>
+    会社のご担当者にお問い合わせください。
+  </p>
+</div>
