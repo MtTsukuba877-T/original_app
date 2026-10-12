@@ -115,4 +115,82 @@ RSpec.describe StressCheckResponse, type: :model do
       end
     end
   end
+
+  describe ".save_answers!" do
+    let(:employee) { create(:employee) }
+    let(:period) { create(:stress_check_period, company: employee.company) }
+    let!(:question1) { create(:question) }
+    let!(:question2) { create(:question) }
+    let(:answers) { { question1.id.to_s => 1, question2.id.to_s => 4 } }
+
+    it "全質問の回答がそろっていれば、質問の数だけ保存され、受検者・実施回・回答の値が正しいこと" do
+      StressCheckResponse.save_answers!(employee: employee, stress_check_period: period, answers: answers)
+
+      expect(StressCheckResponse.count).to eq(2)
+      expect(StressCheckResponse.find_by(question: question1))
+        .to have_attributes(employee: employee, stress_check_period: period, raw_answer: 1)
+      expect(StressCheckResponse.find_by(question: question2))
+        .to have_attributes(employee: employee, stress_check_period: period, raw_answer: 4)
+    end
+
+    # 先に作った question1 は保存でき、question2 で失敗する。
+    # 保存できた question1 の分も取り消されることを確かめる。
+    it "回答が1問抜けていると ActiveRecord::RecordInvalid が発生し、1件も保存されないこと" do
+      incomplete_answers = answers.except(question2.id.to_s)
+
+      expect {
+        StressCheckResponse.save_answers!(employee: employee, stress_check_period: period, answers: incomplete_answers)
+      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(StressCheckResponse.count).to eq(0)
+    end
+
+    it "保存済みの状態でもう一度呼ぶと ActiveRecord::RecordInvalid が発生し、件数が増えないこと" do
+      StressCheckResponse.save_answers!(employee: employee, stress_check_period: period, answers: answers)
+
+      expect {
+        StressCheckResponse.save_answers!(employee: employee, stress_check_period: period, answers: answers)
+      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(StressCheckResponse.count).to eq(2)
+    end
+
+    it "57問版ではない質問（80問版）は、保存の対象にならないこと" do
+      extended_question = create(:question, question_type: :extended_80)
+
+      StressCheckResponse.save_answers!(employee: employee, stress_check_period: period, answers: answers)
+
+      expect(StressCheckResponse.count).to eq(2)
+      expect(StressCheckResponse.exists?(question: extended_question)).to be(false)
+    end
+
+    it "answers に存在しない質問の ID が混ざっていても、その分は保存されないこと" do
+      answers_with_unknown_id = answers.merge("0" => 3)
+
+      StressCheckResponse.save_answers!(employee: employee, stress_check_period: period, answers: answers_with_unknown_id)
+
+      expect(StressCheckResponse.count).to eq(2)
+    end
+  end
+
+  describe "#score" do
+    it "逆転項目でない質問は、回答の番号がそのまま点数になること" do
+      question = create(:question, reversed: false)
+
+      expect(build(:stress_check_response, question: question, raw_answer: 1).score).to eq(1)
+      expect(build(:stress_check_response, question: question, raw_answer: 4).score).to eq(4)
+    end
+
+    it "逆転項目は、1→4、2→3、3→2、4→1 に置き換えた点数になること" do
+      question = create(:question, reversed: true)
+
+      scores = (1..4).map { |raw_answer| build(:stress_check_response, question: question, raw_answer: raw_answer).score }
+      expect(scores).to eq([ 4, 3, 2, 1 ])
+    end
+
+    it "score を呼んでも、保存されている回答（raw_answer）は変わらないこと" do
+      response = create(:stress_check_response, question: create(:question, reversed: true), raw_answer: 1)
+
+      expect(response.score).to eq(4)
+      expect(response.reload.raw_answer).to eq(1)
+    end
+  end
 end

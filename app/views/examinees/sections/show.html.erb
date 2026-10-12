@@ -1,0 +1,58 @@
+<% content_for(:title, "受検（#{@section.code.upcase}） | ストレスチェック") %>
+<% content_for(:header_right, render("examinees/shared/logout_button", confirm: "回答は保存されません。ログアウトしますか？")) %>
+
+<%# 受検画面 E-5a〜E-5d（Issue #41）。セクションごとに1画面。 %>
+<%# 回答は「戻る」「次へ」「回答を送信する」のどれを押しても session に預ける（預ける処理は update アクション）。 %>
+
+<% if @section.previous_section.nil? %>
+  <%# 最初の画面（E-5a）だけに表示する注意事項 %>
+  <ul class="mb-8 pl-5 list-disc space-y-2 text-sm text-gray-700">
+    <li>これから全部で57問の質問をします。各質問の4つの選択肢から、最もあてはまるものを1つ選んでください。すべての質問への回答が必要です。</li>
+    <li>途中でやめたいときは、画面右上の「ログアウト」ボタンで受検を中断できます。ただし、途中でログアウトすると回答内容は保存されず、再度受検する際は最初から回答し直しになります。</li>
+    <li>1つの画面で30分以上ボタンを押さずにいると、自動的にログアウトされ、それまでの回答は保存されません。各画面の回答を終えたら、早めに「次へ」を押してください。</li>
+    <li>受検は1回限りです。全問を回答して判定結果をご覧になった後は、やり直すことはできません。</li>
+  </ul>
+<% end %>
+
+<h2 class="mb-6 text-lg font-bold text-gray-900"><%= "#{@section.code.upcase}. #{@section.intro_text}" %></h2>
+
+<%= form_with url: examinees_section_path(@section.code), method: :patch do |f| %>
+  <div class="space-y-6">
+    <% @questions.each do |question| %>
+      <% if question.group_text.present? %>
+        <p class="pt-2 font-medium text-gray-900"><%= question.group_text %></p>
+      <% end %>
+
+      <fieldset>
+        <legend class="text-gray-900"><%= "#{question.question_number}. #{question.content}" %></legend>
+        <% if @unanswered_question_ids.include?(question.id) %>
+          <p class="mt-1 text-sm text-red-600">この質問に回答してください。</p>
+        <% end %>
+        <div class="mt-2 space-y-1">
+          <% @answer_options.each do |option| %>
+            <label class="flex items-center gap-3 px-2 py-2 cursor-pointer">
+              <%= radio_button_tag "answers[#{question.id}]",
+                    option.answer_number,
+                    @answers[question.id.to_s] == option.answer_number,
+                    class: "h-5 w-5 accent-employee-blue" %>
+              <span class="text-base text-gray-900"><%= option.text %></span>
+            </label>
+          <% end %>
+        </div>
+      </fieldset>
+    <% end %>
+  </div>
+
+  <div class="pt-8 flex gap-3">
+    <% if @section.previous_section %>
+      <%= f.button "戻る",
+            name: "move",
+            value: "back",
+            class: "flex-1 py-3 bg-white border border-gray-400 text-gray-900 text-base hover:bg-gray-50 transition-colors cursor-pointer" %>
+    <% end %>
+    <%= f.button @section.next_section ? "次へ" : "回答を送信する",
+          name: "move",
+          value: "next",
+          class: "flex-1 py-3 bg-employee-blue text-white text-base hover:opacity-90 transition-opacity cursor-pointer" %>
+  </div>
+<% end %>

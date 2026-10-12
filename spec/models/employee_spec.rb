@@ -128,39 +128,71 @@ RSpec.describe Employee, type: :model do
     end
 
     describe "password" do
-      it "8文字の場合は valid (境界値、英数字混在)" do
-        employee = build(:employee, password: "abcde123")
-        expect(employee).to be_valid
+      # password バリデーションは password_changed_at が present の場合のみ適用される仕様
+      # （Issue #23 で変更、初期パスワード=生年月日を許容するため）。
+      # そのため、バリデーションが走ることを検証するテストは password_changed_at をセットする。
+      #
+      # 【MVP時点の仕様範囲】
+      # - モデル spec は「バリデーションの条件式が正しく機能すること」の検証に留める。
+      # - 「初期パスワード=生年月日」という業務仕様の検証は、
+      #   Issue #23 で作成する spec/forms/employee_csv_import_form_spec.rb で行う。
+      # - 本リリース版で個別登録機能（Issue #26）が追加された際は、
+      #   そのフォームオブジェクト spec に別途「手入力時の初期パス生成ロジック」の検証を追加する。
+
+      context "password_changed_at が nil の場合（初回ログイン扱い）" do
+        it "数字のみ8桁（生年月日想定）でも valid（CSV 名簿登録時の初期パスワードを許容）" do
+          employee = build(:employee, password: "19800315", password_changed_at: nil)
+          expect(employee).to be_valid
+        end
+
+        it "7文字（境界値未満）でも valid（バリデーションがスキップされる）" do
+          employee = build(:employee, password: "abc1234", password_changed_at: nil)
+          expect(employee).to be_valid
+        end
+
+        it "英字のみでも valid（バリデーションがスキップされる）" do
+          employee = build(:employee, password: "onlyalphabet", password_changed_at: nil)
+          expect(employee).to be_valid
+        end
       end
 
-      it "7文字の場合は invalid (境界値未満)" do
-        employee = build(:employee, password: "abc1234")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("is too short (minimum is 8 characters)")
-      end
+      context "password_changed_at が present の場合（変更後の再変更）" do
+        let(:changed_at) { Time.current }
 
-      it "英字のみの場合は invalid (数字なし)" do
-        employee = build(:employee, password: "onlyalphabet")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
-      end
+        it "8文字の英数字混在の場合は valid (境界値)" do
+          employee = build(:employee, password: "abcde123", password_changed_at: changed_at)
+          expect(employee).to be_valid
+        end
 
-      it "数字のみの場合は invalid (英字なし)" do
-        employee = build(:employee, password: "12345678")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
-      end
+        it "7文字の場合は invalid (境界値未満)" do
+          employee = build(:employee, password: "abc1234", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("is too short (minimum is 8 characters)")
+        end
 
-      it "記号を含む場合は invalid" do
-        employee = build(:employee, password: "abcd123!")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
-      end
+        it "英字のみの場合は invalid (数字なし)" do
+          employee = build(:employee, password: "onlyalphabet", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
 
-      it "日本語を含む場合は invalid" do
-        employee = build(:employee, password: "abc123あい")
-        expect(employee).to be_invalid
-        expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        it "数字のみの場合は invalid (英字なし)" do
+          employee = build(:employee, password: "12345678", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
+
+        it "記号を含む場合は invalid" do
+          employee = build(:employee, password: "abcd123!", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
+
+        it "日本語を含む場合は invalid" do
+          employee = build(:employee, password: "abc123あい", password_changed_at: changed_at)
+          expect(employee).to be_invalid
+          expect(employee.errors[:password]).to include("は半角英数字混在で入力してください")
+        end
       end
     end
 
@@ -170,6 +202,100 @@ RSpec.describe Employee, type: :model do
         expect(employee).to be_invalid
         expect(employee.errors[:company]).to include("must exist")
       end
+    end
+  end
+
+  describe "#responded_to?" do
+    let(:employee) { create(:employee) }
+    let(:period) { create(:stress_check_period, company: employee.company, name: "2026年度前期") }
+
+    it "その実施回の回答が1件もなければ false を返すこと" do
+      expect(employee.responded_to?(period)).to be(false)
+    end
+
+    it "その実施回の回答が1件でもあれば true を返すこと" do
+      create(:stress_check_response, employee: employee, stress_check_period: period)
+
+      expect(employee.responded_to?(period)).to be(true)
+    end
+
+    it "別の実施回の回答しかなければ false を返すこと" do
+      other_period = create(:stress_check_period, company: employee.company, name: "2026年度後期")
+      create(:stress_check_response, employee: employee, stress_check_period: other_period)
+
+      expect(employee.responded_to?(period)).to be(false)
+    end
+
+    it "同じ会社の別の受検者の回答しかなければ false を返すこと" do
+      colleague = create(:employee, company: employee.company)
+      create(:stress_check_response, employee: colleague, stress_check_period: period)
+
+      expect(employee.responded_to?(period)).to be(false)
+    end
+
+    it "別の会社の、受検者番号が同じ受検者の回答しかなければ false を返すこと" do
+      other_employee = create(:employee, examinee_number: employee.examinee_number)
+      other_period = create(:stress_check_period, company: other_employee.company)
+      create(:stress_check_response, employee: other_employee, stress_check_period: other_period)
+
+      expect(other_employee.company).not_to eq(employee.company)
+      expect(employee.responded_to?(period)).to be(false)
+    end
+  end
+
+  describe "#submit_answers!" do
+    let(:employee) { create(:employee) }
+    let(:period) { create(:stress_check_period, company: employee.company) }
+    # 高ストレスの判定には A・B・C のスコアが必要なので、セクションを3つ作る（Issue #45）
+    let(:section_a) { create(:section, code: "a") }
+    let(:section_b) { create(:section, code: "b") }
+    let(:section_c) { create(:section, code: "c") }
+    let!(:reversed_question) { create(:question, section: section_a, reversed: true) }
+    let!(:normal_question) { create(:question, section: section_a) }
+    let!(:question_b) { create(:question, section: section_b) }
+    let!(:question_c) { create(:question, section: section_c) }
+    # A: 逆転項目に1（→4点）、それ以外に3（→3点）で、合計7点。B: 2点。C: 2点。
+    # B が 77点にも 63点にも届かないので、判定は low_to_moderate_stress（高ストレスではない）になる。
+    let(:answers) do
+      {
+        reversed_question.id.to_s => 1,
+        normal_question.id.to_s => 3,
+        question_b.id.to_s => 2,
+        question_c.id.to_s => 2
+      }
+    end
+
+    it "回答と、セクション別スコアと、高ストレスの判定結果がすべて保存されること" do
+      employee.submit_answers!(stress_check_period: period, answers: answers)
+
+      expect(StressCheckResponse.where(employee: employee, stress_check_period: period).count).to eq(4)
+      expect(Judgment.find_by(employee: employee, stress_check_period: period, section: section_a).section_score).to eq(7)
+      expect(Result.find_by(employee: employee, stress_check_period: period).stress_level).to eq("low_to_moderate_stress")
+    end
+
+    # 回答の保存は成功し、その後のセクション別スコアの計算で失敗する状況を作る。
+    it "セクション別スコアの計算で失敗すると、先に保存した回答も取り消されること（全部か0件か）" do
+      period.update!(judgment_method: :raw_score_conversion)
+
+      expect {
+        employee.submit_answers!(stress_check_period: period, answers: answers)
+      }.to raise_error(Judgment::UnsupportedJudgmentMethodError)
+      expect(StressCheckResponse.count).to eq(0)
+      expect(Judgment.count).to eq(0)
+      expect(Result.count).to eq(0)
+    end
+
+    # 回答とセクション別スコアの保存は成功し、その後の判定結果の保存で失敗する状況を作る（Issue #45）。
+    # 判定結果を先に1件作っておくと、判定結果の保存が重複で失敗する。
+    it "判定結果の保存で失敗すると、先に保存した回答とセクション別スコアも取り消されること（全部か0件か）" do
+      create(:result, employee: employee, stress_check_period: period)
+
+      expect {
+        employee.submit_answers!(stress_check_period: period, answers: answers)
+      }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(StressCheckResponse.count).to eq(0)
+      expect(Judgment.count).to eq(0)
+      expect(Result.count).to eq(1)
     end
   end
 end

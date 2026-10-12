@@ -78,6 +78,20 @@ RSpec.describe CompanyRegistrationForm, type: :model do
         expect(form.company).to be_a(Company)
         expect(form.company.name).to eq("株式会社テスト")
       end
+
+      it "作成された StressCheckPeriod の name が「現在の年 + 年」であること" do
+        form = CompanyRegistrationForm.new(valid_attributes)
+        form.save
+        period = StressCheckPeriod.last
+        expect(period.name).to eq("#{Time.current.year}年")
+      end
+
+      it "作成された StressCheckPeriod の judgment_method が simple_sum であること" do
+        form = CompanyRegistrationForm.new(valid_attributes)
+        form.save
+        period = StressCheckPeriod.last
+        expect(period.judgment_method).to eq("simple_sum")
+      end
     end
 
     context "無効な属性の場合" do

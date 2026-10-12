@@ -101,4 +101,38 @@ RSpec.describe StressCheckPeriod, type: :model do
       end
     end
   end
+
+  describe ".in_examination_period（Issue #41）" do
+    let(:today) { Date.current }
+
+    it "今日が期間中の実施回を含むこと" do
+      period = create(:stress_check_period, start_date: today - 1, end_date: today + 1)
+      expect(StressCheckPeriod.in_examination_period).to include(period)
+    end
+
+    it "今日が開始日の実施回を含むこと (境界)" do
+      period = create(:stress_check_period, start_date: today, end_date: today + 1)
+      expect(StressCheckPeriod.in_examination_period).to include(period)
+    end
+
+    it "今日が終了日の実施回を含むこと (境界)" do
+      period = create(:stress_check_period, start_date: today - 1, end_date: today)
+      expect(StressCheckPeriod.in_examination_period).to include(period)
+    end
+
+    it "開始日が明日の実施回（開始前）を含まないこと" do
+      period = create(:stress_check_period, start_date: today + 1, end_date: today + 2)
+      expect(StressCheckPeriod.in_examination_period).not_to include(period)
+    end
+
+    it "終了日が昨日の実施回（終了後）を含まないこと" do
+      period = create(:stress_check_period, start_date: today - 2, end_date: today - 1)
+      expect(StressCheckPeriod.in_examination_period).not_to include(period)
+    end
+
+    it "期間が未設定の実施回を含まないこと" do
+      period = create(:stress_check_period, start_date: nil, end_date: nil)
+      expect(StressCheckPeriod.in_examination_period).not_to include(period)
+    end
+  end
 end

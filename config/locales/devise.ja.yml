@@ -1,0 +1,9 @@
+ja:
+  devise:
+    invitations:
+      edit:
+        header: "パスワード設定"
+        submit_button: "設定する"
+      updated: "パスワードを設定し、ログインしました。"
+    failure:
+      already_authenticated: "既にログイン済みです。別のアカウントで操作する場合は、一度ログアウトしてください。"

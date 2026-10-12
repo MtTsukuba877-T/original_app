@@ -13,14 +13,13 @@
         システム管理者・企業担当者ログイン
       <% end %>
 
-      <a href="#"
-         class="block w-full text-center bg-[#4A90E2] hover:bg-[#3A7BC8] text-white font-semibold py-3 px-4 rounded-md transition-colors">
+      <%= link_to examinees_sign_in_path,
+            class: "block w-full text-center bg-[#4A90E2] hover:bg-[#3A7BC8] text-white font-semibold py-3 px-4 rounded-md transition-colors" do %>
         受検者ログイン
-      </a>
+      <% end %>
+      <p class="text-xs text-center text-gray-400 mt-8">
+        ※ MVP リリース時にサブドメインで分離予定
+      </p>
     </div>
-
-    <p class="text-xs text-center text-gray-400 mt-8">
-      ※ MVP リリース時にサブドメインで分離予定
-    </p>
   </div>
 </div>

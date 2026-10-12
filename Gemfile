@@ -37,6 +37,9 @@ gem "devise-i18n"
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
+# CSV parsing library (moved from default gems to bundled gems in Ruby 3.4)
+gem "csv"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
