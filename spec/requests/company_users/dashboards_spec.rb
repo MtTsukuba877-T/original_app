@@ -75,6 +75,23 @@ RSpec.describe "CompanyUsers::Dashboards", type: :request do
         expect(response.body).to include("②受検案内一斉配信")
         expect(response.body).to include("③受検状況一覧")
       end
+
+      it "⓪名簿アップロードが表示され、名簿アップロード画面へのリンクがあること（Issue #154）" do
+        get company_users_dashboard_path
+        expect(response.body).to include("⓪名簿アップロード")
+        assert_select %(a[href="#{csv_upload_company_users_employees_path}"]), count: 1
+      end
+
+      it "未実装のメニューに、注記が表示されること（Issue #154）" do
+        get company_users_dashboard_path
+        assert_select "p", text: "【準備中】", count: 1
+        assert_select "p", text: "【本リリース版で実装】", count: 2
+      end
+
+      it "未実装のメニュー（①〜③）は、リンク先が「#」のままであること（Issue #154）" do
+        get company_users_dashboard_path
+        assert_select %(a[href="#"]), count: 3
+      end
     end
   end
 end
