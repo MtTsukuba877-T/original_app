@@ -34,6 +34,11 @@ RSpec.describe "CompanyUsers::Employees", type: :request do
         get csv_upload_company_users_employees_path
         expect(response.body).to include("アップロード")
       end
+
+      it "「戻る」のリンク先が操作メニューであること（Issue #154）" do
+        get csv_upload_company_users_employees_path
+        assert_select %(a[href="#{company_users_dashboard_path}"]), text: "戻る"
+      end
     end
   end
 
