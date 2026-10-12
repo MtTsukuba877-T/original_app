@@ -6,7 +6,9 @@ services:
     name: tiishi74b-original-app
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: free
+    # 本番でメールを送信するため、有料のプランにする（Issue #137）。
+    # 無料プランは、SMTP のポート（25・465・587）への送信がブロックされる。
+    plan: 0.5c-512mb
     region: singapore
     branch: main
     healthCheckPath: /up
@@ -20,4 +22,9 @@ services:
       - key: RAILS_MASTER_KEY
         sync: false
       - key: DATABASE_URL
+        sync: false
+      # メール配信（Gmail の SMTP）で使う。値は Render の画面で設定する（Issue #137）。
+      - key: SMTP_USER_NAME
+        sync: false
+      - key: SMTP_PASSWORD
         sync: false

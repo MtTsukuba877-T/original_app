@@ -24,7 +24,9 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = "please-change-me-at-config-initializers-devise@example.com"
+  # 本番では、送信に使う Gmail アドレス（環境変数 SMTP_USER_NAME）を差出人にする（Issue #137）。
+  # 開発・テストでは環境変数がないので、仮のアドレスになる。
+  config.mailer_sender = ENV.fetch("SMTP_USER_NAME", "no-reply@example.com")
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
