@@ -6,36 +6,65 @@
   <%# 上のスペーサー(伸縮する空白) %>
   <div class="flex-1"></div>
 
-  <div class="grid grid-cols-3 gap-6">
-    <%# ==================== ①受検者一覧 ==================== %>
-    <%= link_to "#", class: "block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center" do %>
-      <p class="text-lg font-semibold text-gray-800 mb-2">
-        ①受検者一覧
-      </p>
-      <p class="text-sm text-gray-500">
-        受検者名簿の確認・編集
-      </p>
-    <% end %>
+  <%# ⓪は実装済みのため押せる。①〜③は未実装のため、押せない見た目にして注記を添える（Issue #154）。 %>
+  <%# ①〜③は、各画面を実装したときに、リンク先（"#"）を張り替え、見た目を⓪と同じに戻す。 %>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <%# ==================== ⓪名簿アップロード ==================== %>
+    <div>
+      <%= link_to csv_upload_company_users_employees_path, class: "block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center" do %>
+        <p class="text-lg font-semibold text-gray-800 mb-2">
+          ⓪名簿アップロード
+        </p>
+        <p class="text-sm text-gray-500">
+          CSVファイルで受検者を登録
+        </p>
+      <% end %>
+    </div>
 
-    <%# ==================== ②受検案内一斉配信 ==================== %>
-    <%= link_to "#", class: "block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center" do %>
-      <p class="text-lg font-semibold text-gray-800 mb-2">
-        ②受検案内一斉配信
+    <%# ==================== ①受検者一覧（Issue #25） ==================== %>
+    <div>
+      <%= link_to "#", class: "block bg-gray-100 rounded-lg shadow-md p-6 text-center opacity-50 cursor-not-allowed" do %>
+        <p class="text-lg font-semibold text-gray-800 mb-2">
+          ①受検者一覧
+        </p>
+        <p class="text-sm text-gray-500">
+          受検者名簿の確認・編集
+        </p>
+      <% end %>
+      <p class="text-center text-xs text-red-500 mt-2">
+        【準備中】
       </p>
-      <p class="text-sm text-gray-500">
-        受検者にメールで受検案内を配信
-      </p>
-    <% end %>
+    </div>
 
-    <%# ==================== ③受検状況一覧 ==================== %>
-    <%= link_to "#", class: "block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow text-center" do %>
-      <p class="text-lg font-semibold text-gray-800 mb-2">
-        ③受検状況一覧
+    <%# ==================== ②受検案内一斉配信（Issue #35） ==================== %>
+    <div>
+      <%= link_to "#", class: "block bg-gray-100 rounded-lg shadow-md p-6 text-center opacity-50 cursor-not-allowed" do %>
+        <p class="text-lg font-semibold text-gray-800 mb-2">
+          ②受検案内一斉配信
+        </p>
+        <p class="text-sm text-gray-500">
+          受検者にメールで受検案内を配信
+        </p>
+      <% end %>
+      <p class="text-center text-xs text-red-500 mt-2">
+        【本リリース版で実装】
       </p>
-      <p class="text-sm text-gray-500">
-        各受検者の受検状況を確認
+    </div>
+
+    <%# ==================== ③受検状況一覧（Issue #30） ==================== %>
+    <div>
+      <%= link_to "#", class: "block bg-gray-100 rounded-lg shadow-md p-6 text-center opacity-50 cursor-not-allowed" do %>
+        <p class="text-lg font-semibold text-gray-800 mb-2">
+          ③受検状況一覧
+        </p>
+        <p class="text-sm text-gray-500">
+          各受検者の受検状況を確認
+        </p>
+      <% end %>
+      <p class="text-center text-xs text-red-500 mt-2">
+        【本リリース版で実装】
       </p>
-    <% end %>
+    </div>
   </div>
 
   <%# 下のスペーサー(伸縮する空白) %>
