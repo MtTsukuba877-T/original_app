@@ -22,7 +22,7 @@ class Examinees::BaseController < ApplicationController
   before_action :authenticate_employee!
   before_action :ensure_password_changed!
 
-  helper_method :current_employee, :employee_signed_in?
+  helper_method :current_employee, :employee_signed_in?, :trial?
 
   private
 
@@ -36,6 +36,11 @@ class Examinees::BaseController < ApplicationController
   # 受検者がログイン中かどうか
   def employee_signed_in?
     current_employee.present?
+  end
+
+  # お試し受検（Issue #160）の最中かどうか。入口（TrialsController）で session[:trial] に true を入れる。
+  def trial?
+    session[:trial] == true
   end
 
   # ログイン中の受検者の会社で、今日が受検期間内の実施回を返す（なければ nil）（Issue #41）。

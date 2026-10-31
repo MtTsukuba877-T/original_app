@@ -59,4 +59,23 @@ class Result < ApplicationRecord
       stress_level: stress_level_for(score_a: scores["a"], score_b: scores["b"], score_c: scores["c"])
     )
   end
+
+  # セッションに預けた回答から、高ストレスかどうかを判定して返す（Issue #160 お試し受検）。
+  # DB には何も保存しない。点数（逆転項目の置き換え）は StressCheckResponse#score、
+  # 基準は stress_level_for を使うので、通常の受検と同じ判定になる。
+  # セクションごとの合計の計算は、Judgment.create_section_scores! と同じ。
+  #
+  # answers の形: { "質問のID（文字列）" => 選んだ番号（1〜4の整数）, ... }（session[:answers] と同じ）
+  def self.stress_level_from_answers(answers)
+    # 保存しない回答を、57問版の質問ごとに1件ずつ作る
+    responses = Question.standard_57.includes(:section).map do |question|
+      StressCheckResponse.new(question: question, raw_answer: answers[question.id.to_s])
+    end
+
+    # { "a" => 50, "b" => 61, "c" => 27, "d" => 8 } の形にする
+    scores = responses.group_by { |response| response.question.section.code }
+                      .to_h { |code, section_responses| [ code, section_responses.sum { |response| response.score } ] }
+
+    stress_level_for(score_a: scores["a"], score_b: scores["b"], score_c: scores["c"])
+  end
 end

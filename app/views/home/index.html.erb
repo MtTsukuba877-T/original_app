@@ -20,6 +20,13 @@
       <p class="text-xs text-center text-gray-400 mt-8">
         ※ MVP リリース時にサブドメインで分離予定
       </p>
+      <%# デモ用お試し受検（Issue #160）。通常の受検と取り違えないよう、小さく目立たない色で、右寄せに置く。 %>
+      <div class="flex justify-end">
+        <%= button_to examinees_trial_path,
+              class: "bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold py-2 px-4 rounded-md leading-snug transition-colors cursor-pointer" do %>
+          デモ用<br>お試し受検
+        <% end %>
+      </div>
     </div>
   </div>
 </div>

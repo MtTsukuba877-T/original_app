@@ -1,4 +1,7 @@
 class Employee < ApplicationRecord
+  # お試し受検（デモ）用の受検者の受検者番号（Issue #160）。seeds と、お試し受検の入口で使う。
+  TRIAL_EXAMINEE_NUMBER = "TRIAL".freeze
+
   has_secure_password
 
   belongs_to :company

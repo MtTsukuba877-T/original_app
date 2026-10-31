@@ -5,6 +5,7 @@
 # 「回答を送信する」で DB（stress_check_responses）にまとめて保存し（Issue #42）、
 # あわせてセクション別スコアを計算して judgments に保存し（Issue #44）、
 # 高ストレスかどうかを判定して results に保存する（Issue #45）。
+# お試し受検（Issue #160）では、DB に保存せず、判定結果だけを session に入れる。
 # MVP では途中保存を行わないため、ログアウトやタイムアウトで session が消えると回答も消える。
 # 受検は1回限りのため、受検済みの受検者がこの画面を開いたときは、振り分け係（受検者トップ画面）へ戻す。
 #
@@ -116,9 +117,20 @@ class Examinees::SectionsController < Examinees::BaseController
 
     if section
       redirect_to examinees_section_path(section.code), alert: UNANSWERED_MESSAGE
+    elsif trial?
+      complete_trial_examination
     else
       save_responses
     end
+  end
+
+  # お試し受検で「回答を送信する」を押したとき（Issue #160）。
+  # DB には何も保存せず、預かっていた回答から判定して、判定結果だけを session に残す。
+  # 回答は、通常の受検と同じく session から消して、振り分け係へ移動する。
+  # session は JSON で保存されるので、判定結果はシンボルではなく文字列にして入れる。
+  def complete_trial_examination
+    session[:trial_stress_level] = Result.stress_level_from_answers(stored_answers).to_s
+    clear_answers_and_redirect_to_home
   end
 
   # 預かっている回答を DB に保存し、セクション別スコアと高ストレスの判定結果を保存して、振り分け係へ移動する（Issue #42、#44、#45）。
