@@ -478,6 +478,7 @@ end
 - `Result.stress_level_for`が、受け取った合計点を基準と比べて、`high_stress`または`low_to_moderate_stress`を返す（保存はしない）。基準は、厚生労働省の実施マニュアルの「合計点数を使う方法」（評価基準の例（その1））で、㋐ B の合計が77点以上、または ㋑ A と C の合算が76点以上かつ B の合計が63点以上のときに`high_stress`、それ以外は`low_to_moderate_stress`とする。D（満足度）は使わない。基準の数値は`Result`の定数にまとめている
 - `Result.create_from_section_scores!`は、判定の前に、A・B・C のスコアがそろっていることと、実施回の判定方法が`simple_sum`であることを確かめ、満たさない場合は例外を出して保存しない（Issue #45）
 - 回答・セクション別スコア・判定結果の保存は、`Employee#submit_answers!`が1つのトランザクションで行う（Issue #44、#45）
+- `Result.stress_level_from_answers`（Issue #160）：お試し受検で使う。セッションに預けた回答から、保存しない`StressCheckResponse`の`score`でセクションごとの合計を計算し、`Result.stress_level_for`で判定して返す。DB には何も保存しない
 
 ---
 
