@@ -26,6 +26,7 @@ Rails.application.routes.draw do
     get "sign_in", to: "sessions#new", as: :sign_in
     post "sign_in", to: "sessions#create"
     delete "sign_out", to: "sessions#destroy", as: :sign_out
+    post "trial", to: "trials#create", as: :trial
     get "home", to: "homes#show", as: :home
     resource :password, only: [ :edit, :update ]
     resources :sections, only: [ :show, :update ], param: :code
