@@ -55,6 +55,14 @@ RSpec.describe "Examinees::Sections", type: :request do
     create(:stress_check_response, employee: employee, stress_check_period: period, question: Question.first)
   end
 
+  # お試し受検用の企業・実施回・受検者を作り、お試し受検の入口から入る（Issue #160）
+  def start_trial
+    trial_company = create(:company, name: Company::TRIAL_COMPANY_NAME)
+    create(:employee, :password_changed, company: trial_company, examinee_number: Employee::TRIAL_EXAMINEE_NUMBER)
+    create(:stress_check_period, company: trial_company, start_date: Date.current - 1, end_date: Date.current + 1)
+    post examinees_trial_path
+  end
+
   describe "GET /examinees/sections/:code" do
     context "未ログインの場合" do
       it "ログイン画面にリダイレクトすること" do
@@ -136,6 +144,34 @@ RSpec.describe "Examinees::Sections", type: :request do
       it "受検者トップ画面（振り分け係）にリダイレクトすること" do
         get examinees_section_path("a")
         expect(response).to redirect_to(examinees_home_path)
+      end
+    end
+
+    context "お試し受検の案内の表示（Issue #160）" do
+      context "お試し受検の場合" do
+        before { start_trial }
+
+        it "E-5a に帯が表示され、「受検は1回限り」に取り消し線が付くこと" do
+          get examinees_section_path("a")
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("お試し受検です。回答と結果は保存されません。")
+          assert_select "li.line-through", text: /受検は1回限りです。/, count: 1
+        end
+      end
+
+      context "通常の受検者の場合" do
+        before do
+          sign_in_employee
+          create_period_in_examination
+        end
+
+        it "E-5a に帯は表示されず、「受検は1回限り」に取り消し線が付かないこと" do
+          get examinees_section_path("a")
+          expect(response).to have_http_status(:ok)
+          expect(response.body).not_to include("お試し受検です。")
+          expect(response.body).to include("受検は1回限りです。")
+          assert_select "li.line-through", count: 0
+        end
       end
     end
   end
@@ -343,6 +379,45 @@ RSpec.describe "Examinees::Sections", type: :request do
         patch examinees_section_path("d"), params: { answers: all_answers_params("d"), move: "next" }
         expect(response).to redirect_to(examinees_home_path)
         expect(StressCheckResponse.count).to eq(1)
+      end
+    end
+
+    context "お試し受検の場合（Issue #160）" do
+      before { start_trial }
+
+      it "「回答を送信する」を押すと振り分け係に移動し、回答・スコア・判定結果を DB に保存しないこと" do
+        expect { answer_sections("a", "b", "c", "d") }
+          .not_to change { [ StressCheckResponse.count, Judgment.count, Result.count ] }
+        expect(response).to redirect_to(examinees_home_path)
+      end
+
+      it "送信後、session の回答は消え、判定結果だけが入っていること" do
+        answer_sections("a", "b", "c")
+        expect(session[:answers]).to be_present
+
+        answer_sections("d")
+        expect(session[:answers]).to be_nil
+        expect(session[:trial_stress_level]).to eq("low_to_moderate_stress")
+      end
+
+      it "移動した先の結果画面に、お試し受検の表示が出ること" do
+        answer_sections("a", "b", "c", "d")
+        follow_redirect!
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("お試し受検です。回答と結果は保存されません。")
+        expect(response.body).to include("【高ストレスではない】")
+        expect(response.body).to include("XXXX年XX月XX日")
+        assert_select "span.line-through", text: "この画面を保存または印刷することをお勧めします。", count: 1
+        expect(response.body).to include("結果は保存されずに消えます。")
+      end
+
+      # テスト用のデータ（各セクション2問）では高ストレスを作れないので、判定のメソッドを差し替える
+      it "判定が「高ストレス」の場合、結果画面に【高ストレス】が表示されること" do
+        allow(Result).to receive(:stress_level_from_answers).and_return(:high_stress)
+        answer_sections("a", "b", "c", "d")
+        follow_redirect!
+        expect(response.body).to include("【高ストレス】")
+        expect(response.body).not_to include("【高ストレスではない】")
       end
     end
   end

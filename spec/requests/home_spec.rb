@@ -13,6 +13,13 @@ RSpec.describe "Home", type: :request do
         get root_path
         expect(response.body).to include(%(href="#{examinees_sign_in_path}"))
       end
+
+      it "デモ用お試し受検のボタンが表示され、送り先がお試し受検の入口であること（Issue #160）" do
+        get root_path
+        expect(response.body).to include("デモ用")
+        expect(response.body).to include("お試し受検")
+        assert_select %(form[action="#{examinees_trial_path}"][method="post"]), count: 1
+      end
     end
 
     context "system_admin でログイン済の場合" do

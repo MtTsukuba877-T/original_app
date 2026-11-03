@@ -186,4 +186,33 @@ RSpec.describe Result, type: :model do
       expect(Result.find_by(employee: employee, stress_check_period: period).stress_level).to eq("low_to_moderate_stress")
     end
   end
+
+  describe ".stress_level_from_answers" do
+    # セクション A〜D に2問ずつ作る。A の1問目だけ逆転項目にする。
+    # { "a" => [1問目, 2問目], "b" => [...], ... } の形
+    let!(:questions) do
+      %w[a b c d].to_h do |code|
+        section = create(:section, code: code)
+        [ code, [ create(:question, section: section, reversed: code == "a"), create(:question, section: section) ] ]
+      end
+    end
+
+    # 全問に1番で答えた回答。{ "質問のID（文字列）" => 1, ... }（session[:answers] と同じ形）
+    let(:answers) { questions.values.flatten.to_h { |question| [ question.id.to_s, 1 ] } }
+
+    # A は、逆転項目（1番 → 4点）＋それ以外（1番 → 1点）＝ 5点。B・C は 1点 ＋ 1点 ＝ 2点。
+    it "逆転項目を置き換えたセクションごとの合計を、stress_level_for に渡すこと" do
+      expect(Result).to receive(:stress_level_for).with(score_a: 5, score_b: 2, score_c: 2).and_call_original
+      Result.stress_level_from_answers(answers)
+    end
+
+    it "stress_level_for の判定を返すこと" do
+      expect(Result.stress_level_from_answers(answers)).to eq(:low_to_moderate_stress)
+    end
+
+    it "回答・スコア・判定結果を DB に保存しないこと" do
+      expect { Result.stress_level_from_answers(answers) }
+        .not_to change { [ StressCheckResponse.count, Judgment.count, Result.count ] }
+    end
+  end
 end
