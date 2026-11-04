@@ -8,5 +8,6 @@ load Rails.root.join("db/seeds/users.rb")
 load Rails.root.join("db/seeds/sections.rb")
 load Rails.root.join("db/seeds/answer_options.rb")  # Step 4 で有効化
 load Rails.root.join("db/seeds/questions.rb")       # Step 5 で有効化
+load Rails.root.join("db/seeds/trial.rb")           # Issue #160 お試し受検
 
 Rails.logger.info "seeds データ投入完了"

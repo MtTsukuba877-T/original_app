@@ -96,6 +96,15 @@ RSpec.describe "Examinees::Homes", type: :request do
             expect(response.body).to include("【高ストレスではない】")
             expect(response.body).not_to include("【高ストレス】")
           end
+
+          it "お試し受検の表示（帯、XXXX、取り消し線、赤字）は出ないこと（Issue #160）" do
+            get examinees_home_path
+            expect(response).to have_http_status(:ok)
+            expect(response.body).not_to include("お試し受検です。")
+            expect(response.body).not_to include("XXXX年XX月XX日")
+            expect(response.body).not_to include("結果は保存されずに消えます。")
+            assert_select ".line-through", count: 0
+          end
         end
 
         context "判定結果が「高ストレス」の場合（Issue #46）" do
@@ -217,6 +226,20 @@ RSpec.describe "Examinees::Homes", type: :request do
       it "URL を直接入力しても、パスワード変更画面にリダイレクトすること" do
         get examinees_home_path
         expect(response).to redirect_to(edit_examinees_password_path)
+      end
+    end
+
+    context "お試し受検で、まだ回答を送信していない場合（Issue #160）" do
+      before do
+        trial_company = create(:company, name: Company::TRIAL_COMPANY_NAME)
+        create(:employee, :password_changed, company: trial_company, examinee_number: Employee::TRIAL_EXAMINEE_NUMBER)
+        create(:stress_check_period, company: trial_company, start_date: Date.current - 1, end_date: Date.current + 1)
+        post examinees_trial_path
+      end
+
+      it "受検画面（E-5a）に移動すること" do
+        get examinees_home_path
+        expect(response).to redirect_to(examinees_section_path("a"))
       end
     end
   end

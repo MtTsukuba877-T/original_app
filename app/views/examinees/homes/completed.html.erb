@@ -35,10 +35,17 @@
     </div>
   <% end %>
 
+  <%# お試し受検（Issue #160）では、日付を「XXXX年XX月XX日」にし、保存・印刷のお勧めに取り消し線を付け、 %>
+  <%# 結果が保存されないことを赤字で添える。 %>
   <p class="mt-3 text-sm text-gray-900">
     判定結果を表示できるのは、<br>
-    受検期間の最終日（<%= @stress_check_period.end_date.strftime("%Y年%-m月%-d日") %>）までです。<br>
-    この画面を保存または印刷することをお勧めします。
+    受検期間の最終日（<%= trial? ? "XXXX年XX月XX日" : @stress_check_period.end_date.strftime("%Y年%-m月%-d日") %>）までです。<br>
+    <% if trial? %>
+      <span class="line-through">この画面を保存または印刷することをお勧めします。</span><br>
+      <span class="text-red-600">結果は保存されずに消えます。</span>
+    <% else %>
+      この画面を保存または印刷することをお勧めします。
+    <% end %>
   </p>
 
   <p class="mt-5 text-xs text-gray-600">
