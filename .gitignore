@@ -42,3 +42,6 @@
 
 # Windows Zone.Identifier files (WSL2 environment)
 *:Zone.Identifier
+
+# SimpleCov のカバレッジレポート（Issue #58）
+/coverage/
